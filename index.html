@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Educación Parvularia</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Sistema de Gestión Pedagógica - Nivel Transición</h1>
+            <div class="user-info">
+                <span>👤 Usuario Maestro</span>
+            </div>
+        </header>
+
+        <!-- Selector de Año y Semestre -->
+        <section class="year-selector">
+            <div class="selector-group">
+                <label for="year-select">Año:</label>
+                <select id="year-select">
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2026">2026</option>
+                </select>
+
+                <label for="semester-select">Semestre:</label>
+                <select id="semester-select">
+                    <option value="1" selected>Primer Semestre</option>
+                    <option value="2">Segundo Semestre</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Unidades Pedagógicas -->
+        <section class="pedagogical-units">
+            <h2>Unidades Pedagógicas</h2>
+            <div class="units-container" id="units-container">
+                <!-- Las unidades se cargarán dinámicamente -->
+            </div>
+            <button class="btn btn-primary" id="add-unit-btn">+ Agregar Unidad Pedagógica</button>
+        </section>
+
+        <!-- Navegación de Tabs -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="objetivos">Objetivos de Aprendizaje</button>
+            <button class="tab-btn" data-tab="experiencias">Experiencias de Aprendizaje</button>
+            <button class="tab-btn" data-tab="registro">Registro de Indicadores</button>
+            <button class="tab-btn" data-tab="reportes">Reportes</button>
+        </nav>
+
+        <!-- Tab: Objetivos de Aprendizaje -->
+        <section class="tab-content active" id="tab-objetivos">
+            <div class="content-section">
+                <h2>Gestión de Objetivos de Aprendizaje</h2>
+
+                <!-- Selector de Núcleo -->
+                <div class="objective-selector">
+                    <h3>1. Seleccionar Ámbito y Núcleo</h3>
+                    <div class="form-group">
+                        <label for="ambito-select">Ámbito:</label>
+                        <select id="ambito-select">
+                            <option value="">Seleccione un ámbito...</option>
+                            <option value="desarrollo">Desarrollo Personal y Social</option>
+                            <option value="comunicacion">Comunicación Integral</option>
+                            <option value="interaccion">Interacción y Comprensión del Entorno</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nucleo-select">Núcleo:</label>
+                        <select id="nucleo-select" disabled>
+                            <option value="">Seleccione un núcleo...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Objetivos de Aprendizaje (OA) -->
+                <div class="objectives-list" id="oa-section" style="display:none;">
+                    <h3>2. Seleccionar Objetivos de Aprendizaje (OA)</h3>
+                    <div id="oa-list" class="checkbox-list"></div>
+                </div>
+
+                <!-- Objetivos Actitudinales (OAT) -->
+                <div class="objectives-list" id="oat-section" style="display:none;">
+                    <h3>3. Seleccionar Objetivos de Aprendizaje Transversales (OAT)</h3>
+                    <div id="oat-list" class="checkbox-list"></div>
+                </div>
+
+                <!-- Objetivo Específico -->
+                <div class="specific-objective" id="specific-section" style="display:none;">
+                    <h3>4. Crear Objetivo Específico</h3>
+                    <p class="help-text">El objetivo específico nace de la relación entre el OA y el OAT seleccionados.</p>
+                    <textarea id="specific-objective-text" placeholder="Escriba aquí el objetivo específico que desarrollará con los estudiantes..."></textarea>
+                </div>
+
+                <!-- Indicadores Sugeridos -->
+                <div class="indicators-section" id="indicators-section" style="display:none;">
+                    <h3>5. Indicadores de Evaluación (KPI)</h3>
+                    <p class="help-text">Seleccione o modifique los indicadores sugeridos:</p>
+                    <div id="indicators-list"></div>
+                    <button class="btn btn-secondary" id="add-indicator-btn">+ Agregar Indicador Personalizado</button>
+                </div>
+
+                <!-- Botón para guardar objetivo -->
+                <div class="action-buttons" id="save-objective-section" style="display:none;">
+                    <button class="btn btn-success" id="save-objective-btn">Guardar Objetivo Completo</button>
+                    <button class="btn btn-secondary" id="clear-objective-btn">Limpiar Formulario</button>
+                </div>
+
+                <!-- Objetivos Guardados -->
+                <div class="saved-objectives">
+                    <h3>Objetivos Guardados en Unidades</h3>
+                    <div id="saved-objectives-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Experiencias de Aprendizaje -->
+        <section class="tab-content" id="tab-experiencias">
+            <div class="content-section">
+                <h2>Experiencias de Aprendizaje</h2>
+
+                <div class="form-group">
+                    <label for="objective-for-experience">Objetivo Asociado:</label>
+                    <select id="objective-for-experience">
+                        <option value="">Seleccione un objetivo guardado...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience-unit">Unidad Pedagógica:</label>
+                    <select id="experience-unit">
+                        <option value="">Seleccione una unidad...</option>
+                    </select>
+                </div>
+
+                <div class="experience-creator">
+                    <h3>Diseño de la Experiencia</h3>
+
+                    <!-- Banco de Experiencias -->
+                    <div class="bank-selector">
+                        <button class="btn btn-info" id="load-from-bank-btn">📚 Cargar desde Banco de Experiencias</button>
+                    </div>
+
+                    <!-- Inicio -->
+                    <div class="experience-phase">
+                        <h4>Inicio</h4>
+                        <textarea id="experience-inicio" placeholder="Describa las actividades de inicio para motivar y activar conocimientos previos..."></textarea>
+                    </div>
+
+                    <!-- Desarrollo -->
+                    <div class="experience-phase">
+                        <h4>Desarrollo</h4>
+                        <textarea id="experience-desarrollo" placeholder="Describa las actividades principales donde los estudiantes exploran y construyen aprendizajes..."></textarea>
+                    </div>
+
+                    <!-- Cierre -->
+                    <div class="experience-phase">
+                        <h4>Cierre</h4>
+                        <textarea id="experience-cierre" placeholder="Describa las actividades de cierre para consolidar y reflexionar sobre lo aprendido..."></textarea>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" id="save-experience-btn">Guardar Experiencia</button>
+                        <button class="btn btn-secondary" id="clear-experience-btn">Limpiar</button>
+                    </div>
+                </div>
+
+                <!-- Experiencias Guardadas -->
+                <div class="saved-experiences">
+                    <h3>Experiencias Guardadas</h3>
+                    <div id="saved-experiences-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Registro de Indicadores -->
+        <section class="tab-content" id="tab-registro">
+            <div class="content-section">
+                <h2>Registro de Indicadores por Estudiante</h2>
+
+                <div class="form-group">
+                    <label for="registro-unit">Unidad Pedagógica:</label>
+                    <select id="registro-unit">
+                        <option value="">Seleccione una unidad...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="registro-objective">Objetivo:</label>
+                    <select id="registro-objective">
+                        <option value="">Seleccione un objetivo...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="registro-indicator">Indicador:</label>
+                    <select id="registro-indicator">
+                        <option value="">Seleccione un indicador...</option>
+                    </select>
+                </div>
+
+                <!-- Tabla de Registro -->
+                <div class="registro-table" id="registro-table-container" style="display:none;">
+                    <h3>Evaluación de Estudiantes</h3>
+                    <table id="registro-table">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Nombre del Estudiante</th>
+                                <th>Evaluación</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registro-tbody">
+                        </tbody>
+                    </table>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" id="save-registro-btn">Guardar Evaluaciones</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Reportes -->
+        <section class="tab-content" id="tab-reportes">
+            <div class="content-section">
+                <h2>Reportes de Desempeño</h2>
+
+                <div class="report-selector">
+                    <button class="btn btn-primary report-type-btn active" data-report="curso">Reporte por Curso</button>
+                    <button class="btn btn-primary report-type-btn" data-report="estudiante">Reporte por Estudiante</button>
+                    <button class="btn btn-primary report-type-btn" data-report="docente">Reporte Administrativo</button>
+                </div>
+
+                <!-- Reporte por Curso -->
+                <div class="report-content active" id="report-curso">
+                    <h3>Desempeño General del Curso</h3>
+                    <div class="form-group">
+                        <label for="report-curso-unit">Unidad Pedagógica:</label>
+                        <select id="report-curso-unit">
+                            <option value="">Todas las unidades</option>
+                        </select>
+                    </div>
+                    <div id="curso-stats" class="stats-container"></div>
+                    <div id="curso-chart" class="chart-container"></div>
+                </div>
+
+                <!-- Reporte por Estudiante -->
+                <div class="report-content" id="report-estudiante">
+                    <h3>Desempeño Individual del Estudiante</h3>
+                    <div class="form-group">
+                        <label for="report-student-select">Estudiante:</label>
+                        <select id="report-student-select">
+                            <option value="">Seleccione un estudiante...</option>
+                        </select>
+                    </div>
+                    <div id="estudiante-stats" class="stats-container"></div>
+                    <div id="estudiante-chart" class="chart-container"></div>
+                </div>
+
+                <!-- Reporte Administrativo -->
+                <div class="report-content" id="report-docente">
+                    <h3>Reporte Administrativo - Vista Docente</h3>
+                    <div id="docente-stats" class="stats-container"></div>
+                    <div id="docente-details"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal: Banco de Experiencias -->
+    <div id="bank-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Banco de Experiencias de Aprendizaje</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="bank-nucleo-filter">Filtrar por Núcleo:</label>
+                    <select id="bank-nucleo-filter">
+                        <option value="">Todos los núcleos</option>
+                    </select>
+                </div>
+                <div id="bank-experiences-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Unidad -->
+    <div id="unit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Unidad Pedagógica</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="unit-name">Nombre de la Unidad:</label>
+                    <input type="text" id="unit-name" placeholder="Ej: Los seres vivos">
+                </div>
+                <div class="form-group">
+                    <label for="unit-description">Descripción:</label>
+                    <textarea id="unit-description" placeholder="Descripción breve de la unidad..."></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="save-unit-btn">Guardar Unidad</button>
+                    <button class="btn btn-secondary close">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
