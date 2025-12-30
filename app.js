@@ -114,6 +114,265 @@ function showConfirm({ title, description, onConfirm, onCancel }) {
 console.log('✅ Sistema de Toast - Cargado');
 
 // ============================================================================
+// SECCIÓN 1.5: SISTEMA DE PERSISTENCIA (localStorage)
+// ============================================================================
+
+const STORAGE_KEY = 'educparv_sistema_pedagogico';
+const STORAGE_VERSION = '2.0';
+
+function saveToStorage() {
+    try {
+        const dataToSave = {
+            version: STORAGE_VERSION,
+            timestamp: new Date().toISOString(),
+            data: {
+                currentYear: appState.currentYear,
+                currentSemestre: appState.currentSemestre,
+                selectedUnit: appState.selectedUnit,
+                units: appState.units,
+                savedObjectives: appState.savedObjectives,
+                savedExperiences: appState.savedExperiences,
+                savedRecursos: appState.savedRecursos,
+                materiales: appState.materiales,
+                evaluaciones: appState.evaluaciones,
+                planificaciones: appState.planificaciones
+            }
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        console.log('💾 Datos guardados en memoria local');
+        return true;
+    } catch (error) {
+        console.error('❌ Error al guardar en memoria:', error);
+        showToast({
+            title: 'Error al guardar',
+            description: 'No se pudieron guardar los datos en la memoria local.',
+            variant: 'error'
+        });
+        return false;
+    }
+}
+
+function loadFromStorage() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) {
+            console.log('📭 No hay datos guardados en memoria local');
+            return false;
+        }
+
+        const parsed = JSON.parse(stored);
+
+        // Validar versión
+        if (parsed.version !== STORAGE_VERSION) {
+            console.warn('⚠️ Versión de datos diferente, se requiere migración');
+        }
+
+        // Restaurar datos
+        if (parsed.data) {
+            appState.currentYear = parsed.data.currentYear || 2025;
+            appState.currentSemestre = parsed.data.currentSemestre || 1;
+            appState.selectedUnit = parsed.data.selectedUnit || null;
+            appState.units = parsed.data.units || [];
+            appState.savedObjectives = parsed.data.savedObjectives || [];
+            appState.savedExperiences = parsed.data.savedExperiences || [];
+            appState.savedRecursos = parsed.data.savedRecursos || [];
+            appState.materiales = parsed.data.materiales || [];
+            appState.evaluaciones = parsed.data.evaluaciones || [];
+            appState.planificaciones = parsed.data.planificaciones || [];
+
+            const savedDate = new Date(parsed.timestamp);
+            console.log(`📥 Datos cargados desde memoria (guardado: ${savedDate.toLocaleString('es-CL')})`);
+
+            showToast({
+                title: 'Datos restaurados',
+                description: `Se cargaron tus datos guardados del ${savedDate.toLocaleDateString('es-CL')}.`,
+                variant: 'success'
+            });
+
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('❌ Error al cargar desde memoria:', error);
+        return false;
+    }
+}
+
+function clearStorage() {
+    showConfirm({
+        title: '¿Borrar toda la memoria?',
+        description: 'Esta acción eliminará TODOS los datos guardados: unidades, objetivos, experiencias y recursos. No se puede deshacer.',
+        confirmText: 'Sí, borrar todo',
+        cancelText: 'Cancelar',
+        variant: 'danger',
+        onConfirm: () => {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+
+                // Resetear estado a valores iniciales
+                appState.units = [];
+                appState.savedObjectives = [];
+                appState.savedExperiences = [];
+                appState.savedRecursos = [];
+                appState.materiales = [];
+                appState.evaluaciones = [];
+                appState.planificaciones = [];
+                appState.selectedUnit = null;
+
+                // Recargar interfaz
+                renderUnits();
+                renderSavedObjectives();
+                renderSavedExperiences();
+                renderRecursos();
+
+                console.log('🗑️ Memoria borrada completamente');
+
+                showToast({
+                    title: '¡Memoria borrada!',
+                    description: 'Todos los datos han sido eliminados. El sistema está limpio.',
+                    variant: 'success'
+                });
+
+                // Recargar página después de 2 segundos
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } catch (error) {
+                console.error('❌ Error al borrar memoria:', error);
+                showToast({
+                    title: 'Error',
+                    description: 'No se pudo borrar la memoria.',
+                    variant: 'error'
+                });
+            }
+        }
+    });
+}
+
+function exportData() {
+    try {
+        const dataToExport = {
+            version: STORAGE_VERSION,
+            exportDate: new Date().toISOString(),
+            schoolName: 'Complejo Educacional Valle del Itata',
+            data: {
+                currentYear: appState.currentYear,
+                currentSemestre: appState.currentSemestre,
+                units: appState.units,
+                savedObjectives: appState.savedObjectives,
+                savedExperiences: appState.savedExperiences,
+                savedRecursos: appState.savedRecursos,
+                materiales: appState.materiales,
+                evaluaciones: appState.evaluaciones,
+                planificaciones: appState.planificaciones
+            }
+        };
+
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `educparv_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast({
+            title: 'Datos exportados',
+            description: 'El archivo de respaldo se ha descargado correctamente.',
+            variant: 'success'
+        });
+
+        console.log('📤 Datos exportados correctamente');
+    } catch (error) {
+        console.error('❌ Error al exportar datos:', error);
+        showToast({
+            title: 'Error al exportar',
+            description: 'No se pudieron exportar los datos.',
+            variant: 'error'
+        });
+    }
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const imported = JSON.parse(event.target.result);
+
+                // Validar estructura
+                if (!imported.data || !imported.version) {
+                    throw new Error('Formato de archivo inválido');
+                }
+
+                showConfirm({
+                    title: '¿Importar datos?',
+                    description: 'Esto reemplazará TODOS los datos actuales con los del archivo. ¿Desea continuar?',
+                    confirmText: 'Sí, importar',
+                    cancelText: 'Cancelar',
+                    variant: 'warning',
+                    onConfirm: () => {
+                        // Restaurar datos
+                        appState.currentYear = imported.data.currentYear || 2025;
+                        appState.currentSemestre = imported.data.currentSemestre || 1;
+                        appState.units = imported.data.units || [];
+                        appState.savedObjectives = imported.data.savedObjectives || [];
+                        appState.savedExperiences = imported.data.savedExperiences || [];
+                        appState.savedRecursos = imported.data.savedRecursos || [];
+                        appState.materiales = imported.data.materiales || [];
+                        appState.evaluaciones = imported.data.evaluaciones || [];
+                        appState.planificaciones = imported.data.planificaciones || [];
+
+                        // Guardar en localStorage
+                        saveToStorage();
+
+                        // Recargar interfaz
+                        renderUnits();
+                        renderSavedObjectives();
+                        renderSavedExperiences();
+                        renderRecursos();
+
+                        showToast({
+                            title: '¡Datos importados!',
+                            description: 'Los datos se han restaurado correctamente.',
+                            variant: 'success'
+                        });
+
+                        console.log('📥 Datos importados desde archivo');
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Error al importar datos:', error);
+                showToast({
+                    title: 'Error al importar',
+                    description: 'El archivo no tiene el formato correcto.',
+                    variant: 'error'
+                });
+            }
+        };
+
+        reader.readAsText(file);
+    };
+
+    input.click();
+}
+
+console.log('✅ Sistema de Persistencia - Cargado');
+
+// ============================================================================
 // SECCIÓN 2: ESTADO GLOBAL + STEPPER STATE
 // ============================================================================
 
@@ -154,17 +413,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializeApp();
     setupEventListeners();
-    loadDefaultUnits();
 
-    // Mostrar toast de bienvenida
-    setTimeout(() => {
-        showToast({
-            title: '¡Bienvenida!',
-            description: 'Sistema de gestión pedagógica listo para usar.',
-            variant: 'success',
-            duration: 3000
-        });
-    }, 500);
+    // Intentar cargar datos desde memoria
+    const dataLoaded = loadFromStorage();
+
+    // Si no hay datos, cargar unidades por defecto
+    if (!dataLoaded || appState.units.length === 0) {
+        loadDefaultUnits();
+    } else {
+        // Si hay datos, renderizar todo
+        renderUnits();
+        renderSavedObjectives();
+        renderSavedExperiences();
+        renderRecursos();
+    }
+
+    // Toast de bienvenida solo si NO hay datos guardados
+    if (!dataLoaded) {
+        setTimeout(() => {
+            showToast({
+                title: '¡Bienvenida!',
+                description: 'Sistema de gestión pedagógica listo para usar.',
+                variant: 'info',
+                duration: 3000
+            });
+        }, 500);
+    }
 });
 
 function initializeApp() {
@@ -629,6 +903,10 @@ function saveNewUnit() {
     };
 
     appState.units.push(newUnit);
+
+    // Guardar en memoria local
+    saveToStorage();
+
     renderUnits();
     closeModals();
 
@@ -827,6 +1105,9 @@ function saveObjective() {
 
     appState.savedObjectives.push(objective);
 
+    // Guardar en memoria local
+    saveToStorage();
+
     showToast({
         title: '¡Objetivo guardado!',
         description: 'El objetivo fue agregado a la unidad exitosamente.',
@@ -926,6 +1207,10 @@ function deleteObjective(objId) {
         description: 'Esta acción no se puede deshacer. ¿Está seguro de eliminar este objetivo?',
         onConfirm: () => {
             appState.savedObjectives = appState.savedObjectives.filter(o => o.id !== objId);
+
+            // Guardar en memoria local
+            saveToStorage();
+
             renderSavedObjectives();
             showToast({
                 title: 'Objetivo eliminado',
@@ -1093,6 +1378,9 @@ function saveExperience() {
     };
 
     appState.savedExperiences.push(experience);
+
+    // Guardar en memoria local
+    saveToStorage();
 
     showToast({
         title: '¡Experiencia guardada!',
@@ -1297,6 +1585,10 @@ function deleteRecurso(id) {
         description: 'Esta acción no se puede deshacer.',
         onConfirm: () => {
             appState.savedRecursos = appState.savedRecursos.filter(r => r.id !== id);
+
+            // Guardar en memoria local
+            saveToStorage();
+
             renderRecursos();
             showToast({
                 title: 'Recurso eliminado',

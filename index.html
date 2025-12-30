@@ -16,6 +16,25 @@
             </div>
         </header>
 
+        <!-- Barra de Herramientas: Control de Memoria -->
+        <section class="toolbar">
+            <div class="toolbar-section">
+                <h3 class="toolbar-title">💾 Control de Memoria</h3>
+                <p class="toolbar-description">Los datos se guardan automáticamente en tu navegador</p>
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn btn-outline btn-sm" id="export-data-btn" onclick="exportData()" title="Descargar respaldo de datos">
+                    📤 Exportar
+                </button>
+                <button class="btn btn-outline btn-sm" id="import-data-btn" onclick="importData()" title="Restaurar datos desde archivo">
+                    📥 Importar
+                </button>
+                <button class="btn btn-destructive btn-sm" id="clear-memory-btn" onclick="clearStorage()" title="Borrar todos los datos guardados">
+                    🗑️ Borrar Memoria
+                </button>
+            </div>
+        </section>
+
         <!-- Selector de Año y Semestre -->
         <section class="year-selector">
             <div class="selector-group">
