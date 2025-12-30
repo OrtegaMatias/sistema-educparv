@@ -20,14 +20,14 @@
         <section class="year-selector">
             <div class="selector-group">
                 <label for="year-select">Año:</label>
-                <select id="year-select">
+                <select id="year-select" aria-label="Seleccionar año académico">
                     <option value="2024">2024</option>
                     <option value="2025" selected>2025</option>
                     <option value="2026">2026</option>
                 </select>
 
                 <label for="semester-select">Semestre:</label>
-                <select id="semester-select">
+                <select id="semester-select" aria-label="Seleccionar semestre">
                     <option value="1" selected>Primer Semestre</option>
                     <option value="2">Segundo Semestre</option>
                 </select>
@@ -37,106 +37,238 @@
         <!-- Unidades Pedagógicas -->
         <section class="pedagogical-units">
             <h2>Unidades Pedagógicas</h2>
+
+            <!-- Skeleton loader (se muestra mientras carga) -->
+            <div id="units-skeleton" style="display:none;" class="units-container">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+
+            <!-- Container de unidades -->
             <div class="units-container" id="units-container">
                 <!-- Las unidades se cargarán dinámicamente -->
             </div>
-            <button class="btn btn-primary" id="add-unit-btn">+ Agregar Unidad Pedagógica</button>
+
+            <button class="btn btn-primary" id="add-unit-btn" aria-label="Agregar nueva unidad pedagógica">+ Agregar Unidad Pedagógica</button>
         </section>
 
         <!-- Navegación de Tabs -->
-        <nav class="tabs-nav">
-            <button class="tab-btn active" data-tab="objetivos">Objetivos de Aprendizaje</button>
-            <button class="tab-btn" data-tab="experiencias">Experiencias de Aprendizaje</button>
-            <button class="tab-btn" data-tab="recursos">Guías y Recursos</button>
-            <button class="tab-btn" data-tab="planificacion">Planificación</button>
-            <button class="tab-btn" data-tab="registro">Registro de Indicadores</button>
-            <button class="tab-btn" data-tab="reportes">Reportes</button>
+        <nav class="tabs-nav" role="tablist">
+            <button class="tab-btn active" data-tab="objetivos" role="tab" aria-selected="true">Objetivos de Aprendizaje</button>
+            <button class="tab-btn" data-tab="experiencias" role="tab" aria-selected="false">Experiencias de Aprendizaje</button>
+            <button class="tab-btn" data-tab="recursos" role="tab" aria-selected="false">Guías y Recursos</button>
+            <button class="tab-btn" data-tab="planificacion" role="tab" aria-selected="false">Planificación</button>
+            <button class="tab-btn" data-tab="registro" role="tab" aria-selected="false">Registro de Indicadores</button>
+            <button class="tab-btn" data-tab="reportes" role="tab" aria-selected="false">Reportes</button>
         </nav>
 
-        <!-- Tab: Objetivos de Aprendizaje -->
-        <section class="tab-content active" id="tab-objetivos">
+        <!-- Tab: Objetivos de Aprendizaje CON STEPPER -->
+        <section class="tab-content active" id="tab-objetivos" role="tabpanel">
             <div class="content-section">
                 <h2>Gestión de Objetivos de Aprendizaje</h2>
 
-                <!-- Selector de Núcleo -->
-                <div class="objective-selector">
-                    <h3>1. Seleccionar Ámbito y Núcleo</h3>
-                    <div class="form-group">
-                        <label for="ambito-select">Ámbito:</label>
+                <!-- Alert informativo -->
+                <div class="alert alert-info">
+                    <div class="alert-icon">ℹ️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Crear Objetivos Pedagógicos</div>
+                        <div class="alert-description">Los objetivos de aprendizaje son la base de tu planificación pedagógica. Sigue los pasos del asistente para crear objetivos alineados con las Bases Curriculares 2019.</div>
+                    </div>
+                </div>
+
+                <!-- Stepper para guiar el flujo -->
+                <div class="stepper" id="objectives-stepper">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-step-content">
+                            <div class="stepper-number">1</div>
+                            <div class="stepper-label">Ámbito y Núcleo</div>
+                        </div>
+                    </div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-step-content">
+                            <div class="stepper-number">2</div>
+                            <div class="stepper-label">Objetivos (OA)</div>
+                        </div>
+                    </div>
+                    <div class="stepper-step" data-step="3">
+                        <div class="stepper-step-content">
+                            <div class="stepper-number">3</div>
+                            <div class="stepper-label">OAT del Núcleo</div>
+                        </div>
+                    </div>
+                    <div class="stepper-step" data-step="4">
+                        <div class="stepper-step-content">
+                            <div class="stepper-number">4</div>
+                            <div class="stepper-label">Objetivo Específico</div>
+                        </div>
+                    </div>
+                    <div class="stepper-step" data-step="5">
+                        <div class="stepper-step-content">
+                            <div class="stepper-number">5</div>
+                            <div class="stepper-label">Revisión</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 1: Selector de Ámbito y Núcleo -->
+                <div class="objective-step" id="step-1" style="display:block;">
+                    <h3>Paso 1: Seleccionar Ámbito y Núcleo</h3>
+
+                    <div class="form-field">
+                        <label for="ambito-select">
+                            Ámbito de Aprendizaje <span class="required">*</span>
+                            <span class="tooltip-trigger">
+                                <span class="tooltip-icon" aria-label="Ayuda sobre ámbitos">?</span>
+                                <span class="tooltip">Los ámbitos agrupan los núcleos de aprendizaje según las Bases Curriculares 2019</span>
+                            </span>
+                        </label>
                         <select id="ambito-select">
                             <option value="">Seleccione un ámbito...</option>
                             <option value="desarrollo">Desarrollo Personal y Social</option>
                             <option value="comunicacion">Comunicación Integral</option>
                             <option value="interaccion">Interacción y Comprensión del Entorno</option>
                         </select>
+                        <div class="form-field-message form-field-helper">
+                            Seleccione el ámbito que desea trabajar
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="nucleo-select">Núcleo:</label>
+                    <div class="form-field">
+                        <label for="nucleo-select">
+                            Núcleo de Aprendizaje <span class="required">*</span>
+                        </label>
                         <select id="nucleo-select" disabled>
                             <option value="">Seleccione un núcleo...</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Objetivos de Aprendizaje (OA) -->
-                <div class="objectives-list" id="oa-section" style="display:none;">
-                    <h3>2. Seleccionar Objetivos de Aprendizaje (OA)</h3>
-                    <div id="oa-list" class="checkbox-list"></div>
-                </div>
+                <!-- Paso 2: Objetivos de Aprendizaje (OA) -->
+                <div class="objective-step" id="step-2" style="display:none;">
+                    <h3>Paso 2: Seleccionar Objetivos de Aprendizaje (OA)</h3>
 
-                <!-- Objetivos Actitudinales (OAT) por Núcleo -->
-                <div class="objectives-list" id="oat-section" style="display:none;">
-                    <h3>3. Seleccionar Objetivos de Aprendizaje Transversales (OAT) del Núcleo</h3>
-                    <p class="help-text">Los OAT mostrados corresponden específicamente al núcleo seleccionado.</p>
-                    <div id="oat-list" class="checkbox-list"></div>
-                </div>
+                    <div class="alert alert-info">
+                        <div class="alert-icon">💡</div>
+                        <div class="alert-content">
+                            <div class="alert-description">Seleccione entre 1 y 2 Objetivos de Aprendizaje que trabajará en esta unidad. Puede agregar un tercero opcional en el paso 4.</div>
+                        </div>
+                    </div>
 
-                <!-- Objetivo Específico -->
-                <div class="specific-objective" id="specific-section" style="display:none;">
-                    <h3>4. Crear Objetivo Específico</h3>
-                    <p class="help-text">El objetivo específico nace de la relación entre el OA y el OAT seleccionados.</p>
-                    <textarea id="specific-objective-text" placeholder="Escriba aquí el objetivo específico que desarrollará con los estudiantes..."></textarea>
-                </div>
-
-                <!-- Tercer Objetivo Opcional -->
-                <div class="objetivo-adicional" id="tercer-objetivo-section" style="display:none;">
-                    <h4>➕ Objetivo Adicional (Opcional)</h4>
-                    <p class="help-text">Puede agregar un tercer objetivo de aprendizaje si lo considera necesario.</p>
-                    <div class="form-group">
-                        <label for="tercer-oa-select">Tercer OA (Opcional):</label>
-                        <select id="tercer-oa-select">
-                            <option value="">Ninguno</option>
-                        </select>
+                    <div id="oa-section">
+                        <div id="oa-list" class="checkbox-list"></div>
                     </div>
                 </div>
 
-                <!-- Indicadores Sugeridos -->
-                <div class="indicators-section" id="indicators-section" style="display:none;">
-                    <h3>5. Indicadores de Evaluación (KPI)</h3>
-                    <p class="help-text">Seleccione o modifique los indicadores sugeridos:</p>
-                    <div id="indicators-list"></div>
-                    <button class="btn btn-secondary" id="add-indicator-btn">+ Agregar Indicador Personalizado</button>
+                <!-- Paso 3: Objetivos Transversales (OAT) -->
+                <div class="objective-step" id="step-3" style="display:none;">
+                    <h3>Paso 3: Seleccionar Objetivos Transversales (OAT)</h3>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-icon">⚡</div>
+                        <div class="alert-content">
+                            <div class="alert-title">OAT Específicos del Núcleo</div>
+                            <div class="alert-description">Los OAT mostrados están asociados al núcleo seleccionado y promueven actitudes y valores fundamentales.</div>
+                        </div>
+                    </div>
+
+                    <div id="oat-section">
+                        <div id="oat-list" class="checkbox-list"></div>
+                    </div>
                 </div>
 
-                <!-- Botón para guardar objetivo -->
-                <div class="action-buttons" id="save-objective-section" style="display:none;">
-                    <button class="btn btn-success" id="save-objective-btn">Guardar Objetivo Completo</button>
-                    <button class="btn btn-secondary" id="clear-objective-btn">Limpiar Formulario</button>
+                <!-- Paso 4: Objetivo Específico + Indicadores + Tercer OA Opcional -->
+                <div class="objective-step" id="step-4" style="display:none;">
+                    <h3>Paso 4: Crear Objetivo Específico e Indicadores</h3>
+
+                    <div class="form-field">
+                        <label for="specific-objective-text">
+                            Objetivo Específico <span class="required">*</span>
+                            <span class="tooltip-trigger">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip">El objetivo específico nace de la relación entre los OA y OAT seleccionados</span>
+                            </span>
+                        </label>
+                        <textarea id="specific-objective-text" placeholder="Escriba aquí el objetivo específico que desarrollará con los estudiantes..."></textarea>
+                        <div class="form-field-message form-field-helper">
+                            Escriba un objetivo claro y medible para esta unidad
+                        </div>
+                    </div>
+
+                    <!-- Tercer Objetivo Opcional -->
+                    <div class="objetivo-adicional">
+                        <h4>➕ Objetivo Adicional (Opcional)</h4>
+                        <p class="help-text">Puede agregar un tercer objetivo de aprendizaje si lo considera necesario.</p>
+                        <div class="form-field">
+                            <label for="tercer-oa-select">Tercer OA (Opcional):</label>
+                            <select id="tercer-oa-select">
+                                <option value="">Ninguno</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Indicadores -->
+                    <div id="indicators-section" style="display:none;">
+                        <h4>Indicadores de Evaluación (KPI)</h4>
+                        <p class="help-text">Seleccione o modifique los indicadores sugeridos:</p>
+                        <div id="indicators-list"></div>
+                        <button class="btn btn-secondary" id="add-indicator-btn">+ Agregar Indicador Personalizado</button>
+                    </div>
+                </div>
+
+                <!-- Paso 5: Revisión y Guardado -->
+                <div class="objective-step" id="step-5" style="display:none;">
+                    <h3>Paso 5: Revisión Final</h3>
+
+                    <div class="alert alert-success">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-content">
+                            <div class="alert-title">¡Listo para guardar!</div>
+                            <div class="alert-description">Revise el resumen de su objetivo antes de guardarlo.</div>
+                        </div>
+                    </div>
+
+                    <div id="objective-summary" class="card">
+                        <!-- El resumen se generará dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Navegación del Stepper -->
+                <div class="stepper-navigation">
+                    <button class="btn btn-ghost" id="prev-step-btn" style="display:none;">← Anterior</button>
+                    <div style="flex: 1;"></div>
+                    <button class="btn btn-secondary" id="cancel-objective-btn">Cancelar</button>
+                    <button class="btn btn-primary" id="next-step-btn">Siguiente →</button>
+                    <button class="btn btn-success" id="save-objective-btn" style="display:none;">Guardar Objetivo</button>
                 </div>
 
                 <!-- Objetivos Guardados -->
                 <div class="saved-objectives">
                     <h3>Objetivos Guardados en Unidades</h3>
-                    <div id="saved-objectives-list"></div>
+                    <div id="saved-objectives-list">
+                        <!-- Empty state por defecto -->
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎯</div>
+                            <h3>Aún no hay objetivos creados</h3>
+                            <p>Los objetivos de aprendizaje son la base de tu planificación pedagógica. Usa el asistente arriba para crear tu primer objetivo.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Tab: Experiencias de Aprendizaje -->
-        <section class="tab-content" id="tab-experiencias">
+        <section class="tab-content" id="tab-experiencias" role="tabpanel">
             <div class="content-section">
                 <h2>Experiencias de Aprendizaje</h2>
+
+                <div class="alert alert-info">
+                    <div class="alert-icon">📚</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Diseñar Experiencias de Aprendizaje</div>
+                        <div class="alert-description">Diseñe experiencias de aprendizaje estructuradas en tres fases: Inicio, Desarrollo y Cierre. Puede cargar experiencias del banco o crear las suyas propias.</div>
+                    </div>
+                </div>
 
                 <div class="form-group">
                     <label for="objective-for-experience">Objetivo Asociado:</label>
@@ -157,7 +289,7 @@
 
                     <!-- Banco de Experiencias -->
                     <div class="bank-selector">
-                        <button class="btn btn-info" id="load-from-bank-btn">📚 Cargar desde Banco de Experiencias</button>
+                        <button class="btn btn-outline" id="load-from-bank-btn">📚 Cargar desde Banco de Experiencias</button>
                     </div>
 
                     <!-- Inicio -->
@@ -182,27 +314,33 @@
                     <div class="materiales-section">
                         <h4>📦 Materiales y Recursos Necesarios</h4>
                         <div id="materiales-list">
-                            <!-- Los materiales se agregarán dinámicamente -->
+                            <p class="help-text">No hay materiales agregados.</p>
                         </div>
                         <button class="btn btn-secondary" id="add-material-btn">+ Agregar Material</button>
                     </div>
 
                     <div class="action-buttons">
+                        <button class="btn btn-ghost" id="clear-experience-btn">Limpiar</button>
                         <button class="btn btn-success" id="save-experience-btn">Guardar Experiencia</button>
-                        <button class="btn btn-secondary" id="clear-experience-btn">Limpiar</button>
                     </div>
                 </div>
 
                 <!-- Experiencias Guardadas -->
                 <div class="saved-experiences">
                     <h3>Experiencias Guardadas</h3>
-                    <div id="saved-experiences-list"></div>
+                    <div id="saved-experiences-list">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <h3>No hay experiencias creadas</h3>
+                            <p>Diseñe experiencias de aprendizaje significativas para sus estudiantes.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Tab: Guías y Recursos -->
-        <section class="tab-content" id="tab-recursos">
+        <section class="tab-content" id="tab-recursos" role="tabpanel">
             <div class="content-section">
                 <h2>Guías y Recursos Pedagógicos</h2>
 
@@ -214,18 +352,18 @@
                         <input type="file" id="file-input" style="display:none" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png">
                     </div>
 
-                    <div class="form-group">
-                        <label for="recurso-nombre">Nombre del Recurso:</label>
+                    <div class="form-field">
+                        <label for="recurso-nombre">Nombre del Recurso <span class="required">*</span></label>
                         <input type="text" id="recurso-nombre" placeholder="Ej: Guía de trabajo - Los animales">
                     </div>
 
-                    <div class="form-group">
-                        <label for="recurso-descripcion">Descripción:</label>
+                    <div class="form-field">
+                        <label for="recurso-descripcion">Descripción</label>
                         <textarea id="recurso-descripcion" placeholder="Breve descripción del recurso..."></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="recurso-unidad">Unidad Asociada:</label>
+                    <div class="form-field">
+                        <label for="recurso-unidad">Unidad Asociada</label>
                         <select id="recurso-unidad">
                             <option value="">Ninguna (recurso general)</option>
                         </select>
@@ -237,13 +375,19 @@
                 <!-- Recursos Guardados -->
                 <div class="saved-resources">
                     <h3>Recursos Guardados</h3>
-                    <div id="saved-recursos-list"></div>
+                    <div id="saved-recursos-list">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <h3>No hay recursos guardados</h3>
+                            <p>Suba guías, presentaciones y material pedagógico para tenerlo organizado.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Tab: Planificación -->
-        <section class="tab-content" id="tab-planificacion">
+        <section class="tab-content" id="tab-planificacion" role="tabpanel">
             <div class="content-section">
                 <h2>Planificación Pedagógica</h2>
 
@@ -270,15 +414,15 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button class="btn btn-success" id="save-planificacion-btn">Guardar Planificación</button>
-                        <button class="btn btn-info" id="export-planificacion-btn">Exportar a PDF</button>
+                        <button class="btn btn-ghost" id="save-planificacion-btn">Guardar Planificación</button>
+                        <button class="btn btn-outline" id="export-planificacion-btn">Exportar a PDF</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Tab: Registro de Indicadores -->
-        <section class="tab-content" id="tab-registro">
+        <section class="tab-content" id="tab-registro" role="tabpanel">
             <div class="content-section">
                 <h2>Registro de Indicadores por Estudiante</h2>
 
@@ -326,7 +470,7 @@
         </section>
 
         <!-- Tab: Reportes -->
-        <section class="tab-content" id="tab-reportes">
+        <section class="tab-content" id="tab-reportes" role="tabpanel">
             <div class="content-section">
                 <h2>Reportes de Desempeño</h2>
 
@@ -392,7 +536,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Banco de Experiencias de Aprendizaje</h2>
-                <span class="close">&times;</span>
+                <span class="close" aria-label="Cerrar modal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -411,15 +555,16 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Agregar Unidad Pedagógica</h2>
-                <span class="close">&times;</span>
+                <span class="close" aria-label="Cerrar modal">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="unit-name">Nombre de la Unidad:</label>
+                <div class="form-field">
+                    <label for="unit-name">Nombre de la Unidad <span class="required">*</span></label>
                     <input type="text" id="unit-name" placeholder="Ej: Los seres vivos">
+                    <div class="form-field-message" id="unit-name-error" style="display:none;"></div>
                 </div>
-                <div class="form-group">
-                    <label for="unit-description">Descripción:</label>
+                <div class="form-field">
+                    <label for="unit-description">Descripción</label>
                     <textarea id="unit-description" placeholder="Descripción breve de la unidad..."></textarea>
                 </div>
                 <div class="date-input-group">
@@ -433,8 +578,8 @@
                     </div>
                 </div>
                 <div class="action-buttons">
+                    <button class="btn btn-ghost close">Cancelar</button>
                     <button class="btn btn-success" id="save-unit-btn">Guardar Unidad</button>
-                    <button class="btn btn-secondary close">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -445,7 +590,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Efemérides de la Unidad</h2>
-                <span class="close">&times;</span>
+                <span class="close" aria-label="Cerrar modal">&times;</span>
             </div>
             <div class="modal-body">
                 <div id="efemerides-content"></div>
@@ -453,6 +598,10 @@
         </div>
     </div>
 
+    <!-- Toast Container (para notificaciones) -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
     <script src="data.js"></script>
     <script src="app.js"></script>
 </body>

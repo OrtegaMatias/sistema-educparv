@@ -1,51 +1,179 @@
 // ============================================================================
 // SISTEMA DE GESTIÓN PEDAGÓGICA - EDUCACIÓN PARVULARIA
 // Nivel Transición - Bases Curriculares 2019
+// Versión UX Mejorada con shadcn/ui
 // ============================================================================
 
 // ============================================================================
-// SECCIÓN 1: ESTADO GLOBAL E INICIALIZACIÓN
+// SECCIÓN 1: TOAST NOTIFICATION SYSTEM (reemplaza alert/confirm)
 // ============================================================================
 
-// Estado global de la aplicación
+const toastQueue = [];
+const MAX_TOASTS = 3;
+
+function showToast({ title, description, variant = 'info', duration = 5000 }) {
+    const container = document.getElementById('toast-container');
+
+    // Limitar máximo de toasts visibles
+    if (toastQueue.length >= MAX_TOASTS) {
+        const oldestToast = toastQueue.shift();
+        if (oldestToast) {
+            removeToast(oldestToast.element);
+        }
+    }
+
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${variant}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[variant]}</div>
+        <div class="toast-content">
+            ${title ? `<div class="toast-title">${title}</div>` : ''}
+            <div class="toast-description">${description}</div>
+        </div>
+        <button class="toast-close" aria-label="Cerrar notificación">×</button>
+    `;
+
+    container.appendChild(toast);
+    toastQueue.push({ element: toast, variant });
+
+    // Event listener para cerrar
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        removeToast(toast);
+    });
+
+    // Auto-dismiss
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+    }
+}
+
+function removeToast(toast) {
+    if (!toast) return;
+
+    toast.classList.add('toast-exit');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+        const index = toastQueue.findIndex(t => t.element === toast);
+        if (index > -1) {
+            toastQueue.splice(index, 1);
+        }
+    }, 300);
+}
+
+// Función helper para confirmaciones (reemplaza confirm())
+function showConfirm({ title, description, onConfirm, onCancel }) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="confirm-dialog">
+                    <div class="confirm-dialog-icon danger">⚠️</div>
+                    <div class="confirm-dialog-title">${title}</div>
+                    <div class="confirm-dialog-description">${description}</div>
+                    <div class="action-buttons" style="justify-content: center; margin-top: 24px;">
+                        <button class="btn btn-ghost" id="confirm-cancel">Cancelar</button>
+                        <button class="btn btn-destructive" id="confirm-ok">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector('#confirm-ok').addEventListener('click', () => {
+        modal.remove();
+        if (onConfirm) onConfirm();
+    });
+
+    modal.querySelector('#confirm-cancel').addEventListener('click', () => {
+        modal.remove();
+        if (onCancel) onCancel();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            if (onCancel) onCancel();
+        }
+    });
+}
+
+console.log('✅ Sistema de Toast - Cargado');
+
+// ============================================================================
+// SECCIÓN 2: ESTADO GLOBAL + STEPPER STATE
+// ============================================================================
+
 const appState = {
     currentYear: 2025,
-    currentSemester: 1,
+    currentSemestre: 1,
     selectedUnit: null,
     units: [],
+
+    // Stepper state
+    currentStep: 1,
+    completedSteps: [],
+
     selectedAmbito: null,
     selectedNucleo: null,
     selectedOAs: [],
     selectedOATs: [],
-    selectedTercerOA: null, // NUEVO: Tercer objetivo opcional
+    selectedTercerOA: null,
     specificObjective: '',
     indicators: [],
+
     savedObjectives: [],
     savedExperiences: [],
-    savedRecursos: [], // NUEVO: Recursos y guías
-    materiales: [], // NUEVO: Materiales por experiencia
+    savedRecursos: [],
+    materiales: [],
     evaluaciones: [],
-    planificaciones: [] // NUEVO: Planificaciones guardadas
+    planificaciones: []
 };
 
-// Inicialización de la aplicación
+console.log('✅ Estado Global - Inicializado');
+
+// ============================================================================
+// SECCIÓN 3: INICIALIZACIÓN
+// ============================================================================
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de Gestión Pedagógica - Inicializado');
+
     initializeApp();
     setupEventListeners();
     loadDefaultUnits();
+
+    // Mostrar toast de bienvenida
+    setTimeout(() => {
+        showToast({
+            title: '¡Bienvenida!',
+            description: 'Sistema de gestión pedagógica listo para usar.',
+            variant: 'success',
+            duration: 3000
+        });
+    }, 500);
 });
 
 function initializeApp() {
-    // Inicializar materiales vacíos
     appState.materiales = [];
-
-    // Renderizar componentes iniciales
     renderSavedObjectives();
     renderSavedExperiences();
+    initializeStepper();
 }
 
-// Cargar unidades predeterminadas con fechas
 function loadDefaultUnits() {
     const defaultUnits = [
         {
@@ -98,19 +226,19 @@ function loadDefaultUnits() {
         },
         {
             id: 7,
-            name: 'Cultura y tradiciones chilenas',
-            description: 'Conociendo nuestras raíces',
+            name: 'Tradiciones de Chile',
+            description: 'Celebrando nuestras raíces',
             semester: 2,
             fechaInicio: '2025-10-27',
             fechaFin: '2025-11-28'
         },
         {
             id: 8,
-            name: 'Alimentación saludable',
-            description: 'Cuidando nuestro cuerpo',
+            name: 'Preparándonos para el colegio',
+            description: 'Transición a educación básica',
             semester: 2,
             fechaInicio: '2025-12-01',
-            fechaFin: '2025-12-19'
+            fechaFin: '2025-12-20'
         }
     ];
 
@@ -118,21 +246,234 @@ function loadDefaultUnits() {
     renderUnits();
 }
 
-console.log('✅ Sección 1: Estado Global e Inicialización - Cargado');
+console.log('✅ Inicialización - Completada');
 
 // ============================================================================
-// FIN SECCIÓN 1
+// SECCIÓN 4: STEPPER LOGIC (WIZARD DE OBJETIVOS)
 // ============================================================================
 
+function initializeStepper() {
+    appState.currentStep = 1;
+    appState.completedSteps = [];
+    updateStepperUI();
+}
+
+function updateStepperUI() {
+    // Actualizar visual del stepper
+    document.querySelectorAll('.stepper-step').forEach((step, index) => {
+        const stepNum = index + 1;
+        step.classList.remove('active', 'completed');
+
+        if (stepNum === appState.currentStep) {
+            step.classList.add('active');
+        } else if (appState.completedSteps.includes(stepNum)) {
+            step.classList.add('completed');
+        }
+    });
+
+    // Mostrar/ocultar steps de contenido
+    document.querySelectorAll('.objective-step').forEach((stepContent, index) => {
+        stepContent.style.display = (index + 1) === appState.currentStep ? 'block' : 'none';
+    });
+
+    // Si llegamos al paso 4, mostrar sección de indicadores
+    if (appState.currentStep === 4) {
+        const indicatorsSection = document.getElementById('indicators-section');
+        indicatorsSection.style.display = 'block';
+
+        // Si no hay indicadores, agregar uno vacío por defecto
+        if (appState.indicators.length === 0) {
+            appState.indicators.push({
+                id: 0,
+                text: '',
+                editable: true
+            });
+            renderIndicators();
+        }
+    }
+
+    // Actualizar botones de navegación
+    const prevBtn = document.getElementById('prev-step-btn');
+    const nextBtn = document.getElementById('next-step-btn');
+    const saveBtn = document.getElementById('save-objective-btn');
+
+    prevBtn.style.display = appState.currentStep > 1 ? 'block' : 'none';
+    nextBtn.style.display = appState.currentStep < 5 ? 'block' : 'none';
+    saveBtn.style.display = appState.currentStep === 5 ? 'block' : 'none';
+}
+
+function nextStep() {
+    // Validar paso actual antes de avanzar
+    if (!validateCurrentStep()) {
+        return;
+    }
+
+    // Marcar paso actual como completado
+    if (!appState.completedSteps.includes(appState.currentStep)) {
+        appState.completedSteps.push(appState.currentStep);
+    }
+
+    // Avanzar al siguiente paso
+    if (appState.currentStep < 5) {
+        appState.currentStep++;
+
+        // Si llegamos al paso 5, generar resumen
+        if (appState.currentStep === 5) {
+            generateObjectiveSummary();
+        }
+
+        updateStepperUI();
+
+        // Smooth scroll al inicio del stepper
+        document.getElementById('objectives-stepper').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function prevStep() {
+    if (appState.currentStep > 1) {
+        appState.currentStep--;
+        updateStepperUI();
+        document.getElementById('objectives-stepper').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function validateCurrentStep() {
+    switch (appState.currentStep) {
+        case 1:
+            if (!appState.selectedAmbito || !appState.selectedNucleo) {
+                showToast({
+                    title: 'Campos requeridos',
+                    description: 'Debe seleccionar un ámbito y un núcleo de aprendizaje.',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            // Cargar OAs y OATs para los siguientes pasos
+            loadObjectives();
+            return true;
+
+        case 2:
+            if (appState.selectedOAs.length === 0) {
+                showToast({
+                    title: 'Seleccione objetivos',
+                    description: 'Debe seleccionar al menos 1 Objetivo de Aprendizaje (OA).',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            if (appState.selectedOAs.length > 2) {
+                showToast({
+                    title: 'Máximo 2 objetivos',
+                    description: 'Puede seleccionar máximo 2 OAs. Use el paso 4 para agregar un tercero opcional.',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            return true;
+
+        case 3:
+            if (appState.selectedOATs.length === 0) {
+                showToast({
+                    title: 'Seleccione OAT',
+                    description: 'Debe seleccionar al menos 1 Objetivo Transversal (OAT).',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            return true;
+
+        case 4:
+            const specificText = document.getElementById('specific-objective-text').value.trim();
+            if (!specificText) {
+                showToast({
+                    title: 'Objetivo específico requerido',
+                    description: 'Debe escribir el objetivo específico que trabajará.',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            appState.specificObjective = specificText;
+
+            if (appState.indicators.filter(i => i.text.trim()).length === 0) {
+                showToast({
+                    title: 'Indicadores requeridos',
+                    description: 'Debe tener al menos un indicador de evaluación.',
+                    variant: 'warning'
+                });
+                return false;
+            }
+            return true;
+
+        default:
+            return true;
+    }
+}
+
+function generateObjectiveSummary() {
+    const ambito = AMBITOS[appState.selectedAmbito];
+    const nucleo = ambito.nucleos[appState.selectedNucleo];
+    const oatsDelNucleo = OAT_POR_NUCLEO[appState.selectedNucleo] || OAT;
+
+    const summaryHTML = `
+        <div class="card-header">
+            <h4>Resumen del Objetivo</h4>
+        </div>
+        <div class="card-content">
+            <p><strong>Ámbito:</strong> ${ambito.nombre}</p>
+            <p><strong>Núcleo:</strong> ${nucleo.nombre}</p>
+
+            <p><strong>Objetivo Específico:</strong></p>
+            <p style="background: var(--accent-bg); padding: 12px; border-radius: 6px; margin: 8px 0;">
+                ${appState.specificObjective}
+            </p>
+
+            <p><strong>Objetivos de Aprendizaje (${appState.selectedOAs.length}):</strong></p>
+            <ul>
+                ${appState.selectedOAs.map(i => `<li>${nucleo.oa[i].codigo}: ${nucleo.oa[i].texto}</li>`).join('')}
+            </ul>
+
+            ${appState.selectedTercerOA ? `
+                <p><strong>Objetivo Adicional:</strong></p>
+                <ul>
+                    <li>${nucleo.oa[appState.selectedTercerOA].codigo}: ${nucleo.oa[appState.selectedTercerOA].texto}</li>
+                </ul>
+            ` : ''}
+
+            <p><strong>Objetivos Transversales (${appState.selectedOATs.length}):</strong></p>
+            <ul>
+                ${appState.selectedOATs.map(i => `<li>${oatsDelNucleo[i].codigo}: ${oatsDelNucleo[i].texto}</li>`).join('')}
+            </ul>
+
+            <p><strong>Indicadores de Evaluación (${appState.indicators.length}):</strong></p>
+            <ol>
+                ${appState.indicators.map(ind => `<li>${ind.text}</li>`).join('')}
+            </ol>
+        </div>
+    `;
+
+    document.getElementById('objective-summary').innerHTML = summaryHTML;
+}
+
+console.log('✅ Stepper Logic - Cargado');
 
 // ============================================================================
-// SECCIÓN 2: GESTIÓN DE UNIDADES PEDAGÓGICAS (con Fechas y Efemérides)
+// SECCIÓN 5: GESTIÓN DE UNIDADES
 // ============================================================================
 
-// Renderizar unidades pedagógicas
 function renderUnits() {
     const container = document.getElementById('units-container');
-    const filteredUnits = appState.units.filter(u => u.semester === appState.currentSemester);
+    const filteredUnits = appState.units.filter(u => u.semester === appState.currentSemestre);
+
+    if (filteredUnits.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <h3>No hay unidades en este semestre</h3>
+                <p>Cree la primera unidad pedagógica para comenzar.</p>
+            </div>
+        `;
+        return;
+    }
 
     container.innerHTML = filteredUnits.map(unit => {
         const fechaInicio = unit.fechaInicio ? formatearFecha(unit.fechaInicio) : 'No definida';
@@ -169,22 +510,28 @@ function renderUnits() {
         `;
     }).join('');
 
-    // Actualizar selectores de unidades en otras secciones
     updateUnitSelectors();
 }
 
 function selectUnit(unitId) {
     appState.selectedUnit = unitId;
     renderUnits();
+
+    const unit = appState.units.find(u => u.id === unitId);
+    showToast({
+        title: 'Unidad seleccionada',
+        description: `Trabajando en: ${unit.name}`,
+        variant: 'info',
+        duration: 2000
+    });
 }
 
 function updateUnitSelectors() {
-    const filteredUnits = appState.units.filter(u => u.semester === appState.currentSemester);
+    const filteredUnits = appState.units.filter(u => u.semester === appState.currentSemestre);
     const options = filteredUnits.map(u =>
         `<option value="${u.id}">${u.name}</option>`
     ).join('');
 
-    // Actualizar todos los selectores de unidades
     const selectors = [
         'experience-unit',
         'registro-unit',
@@ -209,7 +556,6 @@ function updateUnitSelectors() {
     });
 }
 
-// Formatear fecha para mostrar
 function formatearFecha(fechaStr) {
     if (!fechaStr) return 'No definida';
     const fecha = new Date(fechaStr + 'T00:00:00');
@@ -217,7 +563,6 @@ function formatearFecha(fechaStr) {
     return fecha.toLocaleDateString('es-CL', opciones);
 }
 
-// Ver efemérides de una unidad
 function verEfemerides(unitId) {
     const unit = appState.units.find(u => u.id === unitId);
     if (!unit || !unit.fechaInicio || !unit.fechaFin) return;
@@ -242,7 +587,6 @@ function verEfemerides(unitId) {
     modal.classList.add('active');
 }
 
-// Modal de agregar unidad
 function openUnitModal() {
     document.getElementById('unit-modal').classList.add('active');
     document.getElementById('unit-name').value = '';
@@ -258,12 +602,20 @@ function saveNewUnit() {
     const fechaFin = document.getElementById('unit-fecha-fin').value;
 
     if (!name) {
-        alert('Por favor, ingrese el nombre de la unidad.');
+        showToast({
+            title: 'Campo requerido',
+            description: 'Por favor, ingrese el nombre de la unidad.',
+            variant: 'warning'
+        });
         return;
     }
 
     if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
-        alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+        showToast({
+            title: 'Fechas inválidas',
+            description: 'La fecha de inicio no puede ser posterior a la fecha de fin.',
+            variant: 'error'
+        });
         return;
     }
 
@@ -279,21 +631,20 @@ function saveNewUnit() {
     appState.units.push(newUnit);
     renderUnits();
     closeModals();
-    alert('Unidad pedagógica creada exitosamente.');
+
+    showToast({
+        title: '¡Unidad creada!',
+        description: `La unidad "${name}" fue agregada exitosamente.`,
+        variant: 'success'
+    });
 }
 
-console.log('✅ Sección 2: Gestión de Unidades - Cargado');
+console.log('✅ Gestión de Unidades - Cargado');
 
 // ============================================================================
-// FIN SECCIÓN 2
+// SECCIÓN 6: GESTIÓN DE OBJETIVOS (CON STEPPER)
 // ============================================================================
 
-
-// ============================================================================
-// SECCIÓN 3: GESTIÓN DE OBJETIVOS (OAT por Núcleo + Tercer Objetivo)
-// ============================================================================
-
-// Manejo de cambio de ámbito
 function handleAmbitoChange(e) {
     const ambitoKey = e.target.value;
     appState.selectedAmbito = ambitoKey;
@@ -307,7 +658,6 @@ function handleAmbitoChange(e) {
     if (!ambitoKey) {
         nucleoSelect.disabled = true;
         nucleoSelect.innerHTML = '<option value="">Seleccione un núcleo...</option>';
-        hideObjectiveSections();
         return;
     }
 
@@ -319,31 +669,19 @@ function handleAmbitoChange(e) {
 
     nucleoSelect.disabled = false;
     nucleoSelect.innerHTML = '<option value="">Seleccione un núcleo...</option>' + nucleoOptions;
-    hideObjectiveSections();
 }
 
-// Manejo de cambio de núcleo
 function handleNucleoChange(e) {
     const nucleoKey = e.target.value;
     appState.selectedNucleo = nucleoKey;
-
-    if (!nucleoKey) {
-        hideObjectiveSections();
-        return;
-    }
-
-    loadObjectives();
 }
 
-// Cargar objetivos del núcleo seleccionado
 function loadObjectives() {
     const ambito = AMBITOS[appState.selectedAmbito];
     const nucleo = ambito.nucleos[appState.selectedNucleo];
 
-    // Mostrar OAs
-    const oaSection = document.getElementById('oa-section');
+    // Cargar OAs en paso 2
     const oaList = document.getElementById('oa-list');
-
     oaList.innerHTML = nucleo.oa.map((oa, index) => `
         <div class="checkbox-item">
             <input type="checkbox" id="oa-${index}" value="${index}" onchange="handleOAChange()">
@@ -354,12 +692,8 @@ function loadObjectives() {
         </div>
     `).join('');
 
-    oaSection.style.display = 'block';
-
-    // Mostrar OATs específicos del núcleo
-    const oatSection = document.getElementById('oat-section');
+    // Cargar OATs específicos del núcleo en paso 3
     const oatList = document.getElementById('oat-list');
-
     const oatsDelNucleo = OAT_POR_NUCLEO[appState.selectedNucleo] || OAT;
 
     oatList.innerHTML = oatsDelNucleo.map((oat, index) => `
@@ -371,57 +705,27 @@ function loadObjectives() {
             </label>
         </div>
     `).join('');
-
-    oatSection.style.display = 'block';
 }
 
-// Manejo de cambios en OAs
 function handleOAChange() {
     appState.selectedOAs = Array.from(document.querySelectorAll('#oa-list input:checked'))
         .map(input => parseInt(input.value));
 
-    checkIfCanCreateSpecific();
     loadTercerObjetivoOptions();
 }
 
-// Manejo de cambios en OATs
 function handleOATChange() {
     appState.selectedOATs = Array.from(document.querySelectorAll('#oat-list input:checked'))
         .map(input => parseInt(input.value));
-
-    checkIfCanCreateSpecific();
 }
 
-// Verificar si se puede crear objetivo específico
-function checkIfCanCreateSpecific() {
-    if (appState.selectedOAs.length > 0 && appState.selectedOATs.length > 0) {
-        document.getElementById('specific-section').style.display = 'block';
-        document.getElementById('tercer-objetivo-section').style.display = 'block';
-
-        // Evento para textarea de objetivo específico
-        document.getElementById('specific-objective-text').oninput = function(e) {
-            appState.specificObjective = e.target.value;
-            if (e.target.value.trim()) {
-                loadSuggestedIndicators();
-            }
-        };
-    } else {
-        document.getElementById('specific-section').style.display = 'none';
-        document.getElementById('tercer-objetivo-section').style.display = 'none';
-        document.getElementById('indicators-section').style.display = 'none';
-        document.getElementById('save-objective-section').style.display = 'none';
-    }
-}
-
-// Cargar opciones para tercer objetivo
 function loadTercerObjetivoOptions() {
     const tercerSelect = document.getElementById('tercer-oa-select');
-    if (!tercerSelect) return;
+    if (!tercerSelect || !appState.selectedAmbito || !appState.selectedNucleo) return;
 
     const ambito = AMBITOS[appState.selectedAmbito];
     const nucleo = ambito.nucleos[appState.selectedNucleo];
 
-    // Filtrar OAs que no estén ya seleccionados
     const oasDisponibles = nucleo.oa.filter((oa, index) =>
         !appState.selectedOAs.includes(index)
     );
@@ -437,7 +741,18 @@ function loadTercerObjetivoOptions() {
     };
 }
 
-// Cargar indicadores sugeridos
+// Auto-generar indicadores cuando se escribe el objetivo específico
+document.addEventListener('DOMContentLoaded', function() {
+    const specificTextarea = document.getElementById('specific-objective-text');
+    if (specificTextarea) {
+        specificTextarea.addEventListener('input', function(e) {
+            if (e.target.value.trim().length > 20 && appState.indicators.length === 0) {
+                loadSuggestedIndicators();
+            }
+        });
+    }
+});
+
 function loadSuggestedIndicators() {
     const indicators = generarIndicadoresSugeridos(appState.selectedNucleo);
     appState.indicators = indicators.map((text, index) => ({
@@ -448,10 +763,8 @@ function loadSuggestedIndicators() {
 
     renderIndicators();
     document.getElementById('indicators-section').style.display = 'block';
-    document.getElementById('save-objective-section').style.display = 'block';
 }
 
-// Renderizar indicadores
 function renderIndicators() {
     const container = document.getElementById('indicators-list');
 
@@ -485,20 +798,13 @@ function addCustomIndicator() {
     renderIndicators();
 }
 
-// Guardar objetivo completo
 function saveObjective() {
     if (!appState.selectedUnit) {
-        alert('Por favor, seleccione una unidad pedagógica primero.');
-        return;
-    }
-
-    if (!appState.specificObjective.trim()) {
-        alert('Por favor, escriba el objetivo específico.');
-        return;
-    }
-
-    if (appState.indicators.filter(i => i.text.trim()).length === 0) {
-        alert('Por favor, agregue al menos un indicador.');
+        showToast({
+            title: 'Unidad no seleccionada',
+            description: 'Por favor, seleccione una unidad pedagógica primero en la sección superior.',
+            variant: 'warning'
+        });
         return;
     }
 
@@ -521,17 +827,48 @@ function saveObjective() {
 
     appState.savedObjectives.push(objective);
 
-    alert('Objetivo guardado exitosamente.');
+    showToast({
+        title: '¡Objetivo guardado!',
+        description: 'El objetivo fue agregado a la unidad exitosamente.',
+        variant: 'success'
+    });
+
     clearObjectiveForm();
     renderSavedObjectives();
 }
 
-// Renderizar objetivos guardados
+function clearObjectiveForm() {
+    document.getElementById('ambito-select').value = '';
+    document.getElementById('nucleo-select').value = '';
+    document.getElementById('nucleo-select').disabled = true;
+    document.getElementById('specific-objective-text').value = '';
+    if (document.getElementById('tercer-oa-select')) {
+        document.getElementById('tercer-oa-select').value = '';
+    }
+
+    appState.selectedAmbito = null;
+    appState.selectedNucleo = null;
+    appState.selectedOAs = [];
+    appState.selectedOATs = [];
+    appState.selectedTercerOA = null;
+    appState.specificObjective = '';
+    appState.indicators = [];
+
+    // Reset stepper
+    initializeStepper();
+}
+
 function renderSavedObjectives() {
     const container = document.getElementById('saved-objectives-list');
 
     if (appState.savedObjectives.length === 0) {
-        container.innerHTML = '<p class="help-text">No hay objetivos guardados aún.</p>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🎯</div>
+                <h3>Aún no hay objetivos creados</h3>
+                <p>Los objetivos de aprendizaje son la base de tu planificación pedagógica. Usa el asistente arriba para crear tu primer objetivo.</p>
+            </div>
+        `;
         return;
     }
 
@@ -544,21 +881,20 @@ function renderSavedObjectives() {
                 <p><strong>Núcleo:</strong> ${obj.nucleo}</p>
                 <p><strong>Unidad:</strong> ${unit ? unit.name : 'N/A'}</p>
                 <div class="item-meta">
-                    <span class="badge">${obj.oas.length} OA(s)</span>
-                    <span class="badge">${obj.oats.length} OAT(s)</span>
-                    ${obj.tercerOA ? '<span class="badge badge-info">+ 1 OA Adicional</span>' : ''}
-                    <span class="badge">${obj.indicators.length} Indicadores</span>
+                    <span class="badge badge-default">${obj.oas.length} OA(s)</span>
+                    <span class="badge badge-secondary">${obj.oats.length} OAT(s)</span>
+                    ${obj.tercerOA ? '<span class="badge badge-outline">+ 1 OA Adicional</span>' : ''}
+                    <span class="badge badge-info">${obj.indicators.length} Indicadores</span>
                 </div>
                 <div class="item-actions">
-                    <button class="btn btn-info" onclick="viewObjectiveDetails(${obj.id})">Ver Detalles</button>
-                    <button class="btn btn-danger" onclick="deleteObjective(${obj.id})">Eliminar</button>
+                    <button class="btn btn-outline" onclick="viewObjectiveDetails(${obj.id})">Ver Detalles</button>
+                    <button class="btn btn-destructive" onclick="deleteObjective(${obj.id})">Eliminar</button>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// Ver detalles de un objetivo
 function viewObjectiveDetails(objId) {
     const obj = appState.savedObjectives.find(o => o.id === objId);
     if (!obj) return;
@@ -576,58 +912,36 @@ function viewObjectiveDetails(objId) {
     details += `\nINDICADORES:\n`;
     obj.indicators.forEach((ind, i) => details += `${i+1}. ${ind.text}\n`);
 
-    alert(details);
+    showToast({
+        title: 'Detalles del Objetivo',
+        description: 'Revise la consola para ver el detalle completo',
+        variant: 'info'
+    });
+    console.log(details);
 }
 
-// Eliminar objetivo
 function deleteObjective(objId) {
-    if (confirm('¿Está seguro de eliminar este objetivo?')) {
-        appState.savedObjectives = appState.savedObjectives.filter(o => o.id !== objId);
-        renderSavedObjectives();
-    }
+    showConfirm({
+        title: '¿Eliminar objetivo?',
+        description: 'Esta acción no se puede deshacer. ¿Está seguro de eliminar este objetivo?',
+        onConfirm: () => {
+            appState.savedObjectives = appState.savedObjectives.filter(o => o.id !== objId);
+            renderSavedObjectives();
+            showToast({
+                title: 'Objetivo eliminado',
+                description: 'El objetivo fue eliminado correctamente.',
+                variant: 'success'
+            });
+        }
+    });
 }
 
-// Limpiar formulario de objetivos
-function clearObjectiveForm() {
-    document.getElementById('ambito-select').value = '';
-    document.getElementById('nucleo-select').value = '';
-    document.getElementById('nucleo-select').disabled = true;
-    document.getElementById('specific-objective-text').value = '';
-    document.getElementById('tercer-oa-select').value = '';
-
-    appState.selectedAmbito = null;
-    appState.selectedNucleo = null;
-    appState.selectedOAs = [];
-    appState.selectedOATs = [];
-    appState.selectedTercerOA = null;
-    appState.specificObjective = '';
-    appState.indicators = [];
-
-    hideObjectiveSections();
-}
-
-// Ocultar secciones de objetivos
-function hideObjectiveSections() {
-    document.getElementById('oa-section').style.display = 'none';
-    document.getElementById('oat-section').style.display = 'none';
-    document.getElementById('specific-section').style.display = 'none';
-    document.getElementById('tercer-objetivo-section').style.display = 'none';
-    document.getElementById('indicators-section').style.display = 'none';
-    document.getElementById('save-objective-section').style.display = 'none';
-}
-
-console.log('✅ Sección 3: Gestión de Objetivos - Cargado');
+console.log('✅ Gestión de Objetivos - Cargado');
 
 // ============================================================================
-// FIN SECCIÓN 3
+// SECCIÓN 7: GESTIÓN DE EXPERIENCIAS
 // ============================================================================
 
-
-// ============================================================================
-// SECCIÓN 4: GESTIÓN DE EXPERIENCIAS (con Materiales)
-// ============================================================================
-
-// Cargar objetivos para experiencias
 function loadObjectivesForExperiences() {
     const select = document.getElementById('objective-for-experience');
     select.innerHTML = '<option value="">Seleccione un objetivo guardado...</option>' +
@@ -636,12 +950,10 @@ function loadObjectivesForExperiences() {
         ).join('');
 }
 
-// Abrir modal del banco de experiencias
 function openBankModal() {
     const modal = document.getElementById('bank-modal');
     modal.classList.add('active');
 
-    // Cargar filtro de núcleos
     const nucleoFilter = document.getElementById('bank-nucleo-filter');
     const allNucleos = [];
 
@@ -659,7 +971,6 @@ function openBankModal() {
     renderBankExperiences();
 }
 
-// Renderizar experiencias del banco
 function renderBankExperiences(filterNucleo = '') {
     const container = document.getElementById('bank-experiences-list');
 
@@ -671,13 +982,12 @@ function renderBankExperiences(filterNucleo = '') {
     container.innerHTML = experiences.map((exp, index) => `
         <div class="bank-experience-card" onclick="loadExperienceFromBank(${index})">
             <h4>${exp.titulo}</h4>
-            <span class="badge">${getNucleoName(exp.nucleo)}</span>
+            <span class="badge badge-info">${getNucleoName(exp.nucleo)}</span>
             <p><strong>Inicio:</strong> ${exp.inicio.substring(0, 100)}...</p>
         </div>
     `).join('');
 }
 
-// Obtener nombre del núcleo
 function getNucleoName(nucleoKey) {
     for (let ambito of Object.values(AMBITOS)) {
         if (ambito.nucleos[nucleoKey]) {
@@ -687,7 +997,6 @@ function getNucleoName(nucleoKey) {
     return nucleoKey;
 }
 
-// Cargar experiencia desde el banco
 function loadExperienceFromBank(index) {
     const exp = BANCO_EXPERIENCIAS[index];
 
@@ -696,10 +1005,13 @@ function loadExperienceFromBank(index) {
     document.getElementById('experience-cierre').value = exp.cierre;
 
     closeModals();
-    alert(`Experiencia "${exp.titulo}" cargada. Puede modificarla según sus necesidades.`);
+    showToast({
+        title: 'Experiencia cargada',
+        description: `"${exp.titulo}" fue cargada. Puede modificarla según sus necesidades.`,
+        variant: 'success'
+    });
 }
 
-// Gestión de materiales
 function renderMateriales() {
     const container = document.getElementById('materiales-list');
 
@@ -740,7 +1052,6 @@ function removeMaterial(index) {
     renderMateriales();
 }
 
-// Guardar experiencia
 function saveExperience() {
     const objectiveId = document.getElementById('objective-for-experience').value;
     const unitId = document.getElementById('experience-unit').value;
@@ -749,12 +1060,20 @@ function saveExperience() {
     const cierre = document.getElementById('experience-cierre').value;
 
     if (!objectiveId || !unitId) {
-        alert('Por favor, seleccione un objetivo y una unidad pedagógica.');
+        showToast({
+            title: 'Campos requeridos',
+            description: 'Por favor, seleccione un objetivo y una unidad pedagógica.',
+            variant: 'warning'
+        });
         return;
     }
 
     if (!inicio.trim() || !desarrollo.trim() || !cierre.trim()) {
-        alert('Por favor, complete las tres fases de la experiencia (Inicio, Desarrollo, Cierre).');
+        showToast({
+            title: 'Complete las fases',
+            description: 'Por favor, complete las tres fases de la experiencia (Inicio, Desarrollo, Cierre).',
+            variant: 'warning'
+        });
         return;
     }
 
@@ -775,17 +1094,37 @@ function saveExperience() {
 
     appState.savedExperiences.push(experience);
 
-    alert('Experiencia de aprendizaje guardada exitosamente.');
+    showToast({
+        title: '¡Experiencia guardada!',
+        description: 'La experiencia de aprendizaje fue guardada exitosamente.',
+        variant: 'success'
+    });
+
     clearExperienceForm();
     renderSavedExperiences();
 }
 
-// Renderizar experiencias guardadas
+function clearExperienceForm() {
+    document.getElementById('objective-for-experience').value = '';
+    document.getElementById('experience-unit').value = '';
+    document.getElementById('experience-inicio').value = '';
+    document.getElementById('experience-desarrollo').value = '';
+    document.getElementById('experience-cierre').value = '';
+    appState.materiales = [];
+    renderMateriales();
+}
+
 function renderSavedExperiences() {
     const container = document.getElementById('saved-experiences-list');
 
     if (appState.savedExperiences.length === 0) {
-        container.innerHTML = '<p class="help-text">No hay experiencias guardadas aún.</p>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <h3>No hay experiencias creadas</h3>
+                <p>Diseñe experiencias de aprendizaje significativas para sus estudiantes.</p>
+            </div>
+        `;
         return;
     }
 
@@ -797,14 +1136,13 @@ function renderSavedExperiences() {
             ${exp.materiales && exp.materiales.length > 0 ?
                 `<p><strong>Materiales:</strong> ${exp.materiales.length} item(s)</p>` : ''}
             <div class="item-actions">
-                <button class="btn btn-info" onclick="viewExperienceDetails(${exp.id})">Ver Detalles</button>
-                <button class="btn btn-danger" onclick="deleteExperience(${exp.id})">Eliminar</button>
+                <button class="btn btn-outline" onclick="viewExperienceDetails(${exp.id})">Ver Detalles</button>
+                <button class="btn btn-destructive" onclick="deleteExperience(${exp.id})">Eliminar</button>
             </div>
         </div>
     `).join('');
 }
 
-// Ver detalles de experiencia
 function viewExperienceDetails(expId) {
     const exp = appState.savedExperiences.find(e => e.id === expId);
     if (!exp) return;
@@ -821,40 +1159,36 @@ function viewExperienceDetails(expId) {
         exp.materiales.forEach(m => details += `- ${m.nombre} (${m.cantidad})\n`);
     }
 
-    alert(details);
+    showToast({
+        title: 'Detalles de Experiencia',
+        description: 'Revise la consola para ver el detalle completo',
+        variant: 'info'
+    });
+    console.log(details);
 }
 
-// Eliminar experiencia
 function deleteExperience(expId) {
-    if (confirm('¿Está seguro de eliminar esta experiencia?')) {
-        appState.savedExperiences = appState.savedExperiences.filter(e => e.id !== expId);
-        renderSavedExperiences();
-    }
+    showConfirm({
+        title: '¿Eliminar experiencia?',
+        description: 'Esta acción no se puede deshacer. ¿Está seguro?',
+        onConfirm: () => {
+            appState.savedExperiences = appState.savedExperiences.filter(e => e.id !== expId);
+            renderSavedExperiences();
+            showToast({
+                title: 'Experiencia eliminada',
+                description: 'La experiencia fue eliminada correctamente.',
+                variant: 'success'
+            });
+        }
+    });
 }
 
-// Limpiar formulario de experiencia
-function clearExperienceForm() {
-    document.getElementById('objective-for-experience').value = '';
-    document.getElementById('experience-unit').value = '';
-    document.getElementById('experience-inicio').value = '';
-    document.getElementById('experience-desarrollo').value = '';
-    document.getElementById('experience-cierre').value = '';
-    appState.materiales = [];
-    renderMateriales();
-}
-
-console.log('✅ Sección 4: Gestión de Experiencias - Cargado');
+console.log('✅ Gestión de Experiencias - Cargado');
 
 // ============================================================================
-// FIN SECCIÓN 4
+// SECCIÓN 8: RECURSOS
 // ============================================================================
 
-
-// ============================================================================
-// SECCIÓN 5-9: RECURSOS, PLANIFICACIÓN, REGISTRO, REPORTES, EVENT LISTENERS
-// ============================================================================
-
-// GUÍAS Y RECURSOS
 let uploadedFiles = [];
 
 function setupFileUpload() {
@@ -881,7 +1215,12 @@ function setupFileUpload() {
 
 function handleFiles(files) {
     uploadedFiles = Array.from(files);
-    alert(`${files.length} archivo(s) seleccionado(s): ${Array.from(files).map(f => f.name).join(', ')}`);
+    showToast({
+        title: 'Archivos seleccionados',
+        description: `${files.length} archivo(s): ${Array.from(files).map(f => f.name).join(', ')}`,
+        variant: 'info',
+        duration: 3000
+    });
 }
 
 function saveRecurso() {
@@ -890,7 +1229,11 @@ function saveRecurso() {
     const unitId = document.getElementById('recurso-unidad').value;
 
     if (!nombre) {
-        alert('Ingrese el nombre del recurso.');
+        showToast({
+            title: 'Campo requerido',
+            description: 'Ingrese el nombre del recurso.',
+            variant: 'warning'
+        });
         return;
     }
 
@@ -906,14 +1249,25 @@ function saveRecurso() {
     appState.savedRecursos.push(recurso);
     renderRecursos();
     clearRecursoForm();
-    alert('Recurso guardado exitosamente.');
+
+    showToast({
+        title: '¡Recurso guardado!',
+        description: `"${nombre}" fue guardado exitosamente.`,
+        variant: 'success'
+    });
 }
 
 function renderRecursos() {
     const container = document.getElementById('saved-recursos-list');
 
     if (appState.savedRecursos.length === 0) {
-        container.innerHTML = '<p class="help-text">No hay recursos guardados.</p>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📂</div>
+                <h3>No hay recursos guardados</h3>
+                <p>Suba guías, presentaciones y material pedagógico para tenerlo organizado.</p>
+            </div>
+        `;
         return;
     }
 
@@ -931,17 +1285,26 @@ function renderRecursos() {
             </div>
             <p class="recurso-description">${rec.descripcion || 'Sin descripción'}</p>
             <div class="recurso-actions">
-                <button class="btn btn-danger" onclick="deleteRecurso(${rec.id})">Eliminar</button>
+                <button class="btn btn-destructive" onclick="deleteRecurso(${rec.id})">Eliminar</button>
             </div>
         </div>
     `).join('');
 }
 
 function deleteRecurso(id) {
-    if (confirm('¿Eliminar recurso?')) {
-        appState.savedRecursos = appState.savedRecursos.filter(r => r.id !== id);
-        renderRecursos();
-    }
+    showConfirm({
+        title: '¿Eliminar recurso?',
+        description: 'Esta acción no se puede deshacer.',
+        onConfirm: () => {
+            appState.savedRecursos = appState.savedRecursos.filter(r => r.id !== id);
+            renderRecursos();
+            showToast({
+                title: 'Recurso eliminado',
+                description: 'El recurso fue eliminado correctamente.',
+                variant: 'success'
+            });
+        }
+    });
 }
 
 function clearRecursoForm() {
@@ -952,11 +1315,20 @@ function clearRecursoForm() {
     uploadedFiles = [];
 }
 
-// PLANIFICACIÓN
+console.log('✅ Gestión de Recursos - Cargado');
+
+// ============================================================================
+// SECCIÓN 9: PLANIFICACIÓN
+// ============================================================================
+
 function generatePlanificacion() {
     const unitId = parseInt(document.getElementById('planificacion-unit').value);
     if (!unitId) {
-        alert('Seleccione una unidad.');
+        showToast({
+            title: 'Seleccione una unidad',
+            description: 'Debe seleccionar una unidad para generar la planificación.',
+            variant: 'warning'
+        });
         return;
     }
 
@@ -965,7 +1337,11 @@ function generatePlanificacion() {
     const experiencias = appState.savedExperiences.filter(e => e.unitId === unitId);
 
     if (objetivos.length === 0) {
-        alert('Esta unidad no tiene objetivos asociados.');
+        showToast({
+            title: 'Sin objetivos',
+            description: 'Esta unidad no tiene objetivos asociados. Cree objetivos primero.',
+            variant: 'warning'
+        });
         return;
     }
 
@@ -998,9 +1374,20 @@ function generatePlanificacion() {
     `).join('');
 
     document.getElementById('planificacion-container').style.display = 'block';
+
+    showToast({
+        title: 'Planificación generada',
+        description: `Planificación para "${unit.name}" lista.`,
+        variant: 'success'
+    });
 }
 
-// REGISTRO DE INDICADORES
+console.log('✅ Planificación - Cargado');
+
+// ============================================================================
+// SECCIÓN 10: REGISTRO DE INDICADORES
+// ============================================================================
+
 function handleRegistroUnitChange(e) {
     const unitId = parseInt(e.target.value);
     const objSelect = document.getElementById('registro-objective');
@@ -1081,6 +1468,7 @@ function saveEvaluaciones() {
     const objectiveId = parseInt(document.getElementById('registro-objective').value);
     const indicatorIndex = parseInt(document.getElementById('registro-indicator').value);
 
+    let count = 0;
     ESTUDIANTES.forEach(student => {
         const evaluation = document.getElementById(`eval-${student.id}`).value;
         const observacion = document.getElementById(`obs-${student.id}`).value;
@@ -1095,13 +1483,23 @@ function saveEvaluaciones() {
                 unitId, objectiveId, indicatorId: indicatorIndex,
                 studentId: student.id, evaluation, observacion
             });
+            count++;
         }
     });
 
-    alert('Evaluaciones guardadas.');
+    showToast({
+        title: 'Evaluaciones guardadas',
+        description: `${count} evaluaciones guardadas correctamente.`,
+        variant: 'success'
+    });
 }
 
-// REPORTES
+console.log('✅ Registro de Indicadores - Cargado');
+
+// ============================================================================
+// SECCIÓN 11: REPORTES
+// ============================================================================
+
 function switchReport(reportType) {
     document.querySelectorAll('.report-type-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.report-content').forEach(content => content.classList.remove('active'));
@@ -1111,7 +1509,7 @@ function switchReport(reportType) {
 
     if (reportType === 'curso') generateCursoReport();
     else if (reportType === 'estudiante') generateEstudianteReport();
-    else if (reportType === 'semestre') return; // Se genera con botón
+    else if (reportType === 'semestre') return;
     else if (reportType === 'docente') generateDocenteReport();
 }
 
@@ -1276,7 +1674,12 @@ function loadStudentsForReport() {
         ESTUDIANTES.map(student => `<option value="${student.id}">${student.nombre}</option>`).join('');
 }
 
-// TABS Y MODALES
+console.log('✅ Reportes - Cargado');
+
+// ============================================================================
+// SECCIÓN 12: TABS Y MODALES
+// ============================================================================
+
 function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -1297,7 +1700,12 @@ function closeModals() {
     document.querySelectorAll('.modal').forEach(modal => modal.classList.remove('active'));
 }
 
-// EVENT LISTENERS COMPLETOS
+console.log('✅ Tabs y Modales - Cargado');
+
+// ============================================================================
+// SECCIÓN 13: EVENT LISTENERS
+// ============================================================================
+
 function setupEventListeners() {
     // Año y Semestre
     document.getElementById('year-select').addEventListener('change', (e) => {
@@ -1315,18 +1723,20 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
     });
 
+    // Stepper Navigation
+    document.getElementById('next-step-btn').addEventListener('click', nextStep);
+    document.getElementById('prev-step-btn').addEventListener('click', prevStep);
+    document.getElementById('save-objective-btn').addEventListener('click', saveObjective);
+    document.getElementById('cancel-objective-btn').addEventListener('click', clearObjectiveForm);
+
     // Objetivos
     document.getElementById('ambito-select').addEventListener('change', handleAmbitoChange);
     document.getElementById('nucleo-select').addEventListener('change', handleNucleoChange);
     document.getElementById('add-indicator-btn').addEventListener('click', addCustomIndicator);
-    document.getElementById('save-objective-btn').addEventListener('click', saveObjective);
-    document.getElementById('clear-objective-btn').addEventListener('click', clearObjectiveForm);
 
     // Experiencias
     document.getElementById('load-from-bank-btn').addEventListener('click', openBankModal);
-    document.getElementById('add-material-btn').addEventListener('click', () => {
-        addMaterial();
-    });
+    document.getElementById('add-material-btn').addEventListener('click', addMaterial);
     document.getElementById('save-experience-btn').addEventListener('click', saveExperience);
     document.getElementById('clear-experience-btn').addEventListener('click', clearExperienceForm);
 
@@ -1366,8 +1776,10 @@ function setupEventListeners() {
     });
 }
 
-console.log('✅ Todas las Secciones Cargadas - Sistema Completoو');
+console.log('✅ Event Listeners - Configurados');
 
 // ============================================================================
-// FIN APP.JS
+// FIN DEL SISTEMA - TODO LISTO
 // ============================================================================
+
+console.log('✅✅✅ Sistema Completo - Listo para usar');
