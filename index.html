@@ -47,6 +47,8 @@
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="objetivos">Objetivos de Aprendizaje</button>
             <button class="tab-btn" data-tab="experiencias">Experiencias de Aprendizaje</button>
+            <button class="tab-btn" data-tab="recursos">Guías y Recursos</button>
+            <button class="tab-btn" data-tab="planificacion">Planificación</button>
             <button class="tab-btn" data-tab="registro">Registro de Indicadores</button>
             <button class="tab-btn" data-tab="reportes">Reportes</button>
         </nav>
@@ -83,9 +85,10 @@
                     <div id="oa-list" class="checkbox-list"></div>
                 </div>
 
-                <!-- Objetivos Actitudinales (OAT) -->
+                <!-- Objetivos Actitudinales (OAT) por Núcleo -->
                 <div class="objectives-list" id="oat-section" style="display:none;">
-                    <h3>3. Seleccionar Objetivos de Aprendizaje Transversales (OAT)</h3>
+                    <h3>3. Seleccionar Objetivos de Aprendizaje Transversales (OAT) del Núcleo</h3>
+                    <p class="help-text">Los OAT mostrados corresponden específicamente al núcleo seleccionado.</p>
                     <div id="oat-list" class="checkbox-list"></div>
                 </div>
 
@@ -94,6 +97,18 @@
                     <h3>4. Crear Objetivo Específico</h3>
                     <p class="help-text">El objetivo específico nace de la relación entre el OA y el OAT seleccionados.</p>
                     <textarea id="specific-objective-text" placeholder="Escriba aquí el objetivo específico que desarrollará con los estudiantes..."></textarea>
+                </div>
+
+                <!-- Tercer Objetivo Opcional -->
+                <div class="objetivo-adicional" id="tercer-objetivo-section" style="display:none;">
+                    <h4>➕ Objetivo Adicional (Opcional)</h4>
+                    <p class="help-text">Puede agregar un tercer objetivo de aprendizaje si lo considera necesario.</p>
+                    <div class="form-group">
+                        <label for="tercer-oa-select">Tercer OA (Opcional):</label>
+                        <select id="tercer-oa-select">
+                            <option value="">Ninguno</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Indicadores Sugeridos -->
@@ -163,6 +178,15 @@
                         <textarea id="experience-cierre" placeholder="Describa las actividades de cierre para consolidar y reflexionar sobre lo aprendido..."></textarea>
                     </div>
 
+                    <!-- Materiales y Recursos -->
+                    <div class="materiales-section">
+                        <h4>📦 Materiales y Recursos Necesarios</h4>
+                        <div id="materiales-list">
+                            <!-- Los materiales se agregarán dinámicamente -->
+                        </div>
+                        <button class="btn btn-secondary" id="add-material-btn">+ Agregar Material</button>
+                    </div>
+
                     <div class="action-buttons">
                         <button class="btn btn-success" id="save-experience-btn">Guardar Experiencia</button>
                         <button class="btn btn-secondary" id="clear-experience-btn">Limpiar</button>
@@ -173,6 +197,82 @@
                 <div class="saved-experiences">
                     <h3>Experiencias Guardadas</h3>
                     <div id="saved-experiences-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Guías y Recursos -->
+        <section class="tab-content" id="tab-recursos">
+            <div class="content-section">
+                <h2>Guías y Recursos Pedagógicos</h2>
+
+                <div class="file-upload-section">
+                    <h3>Subir Nuevo Recurso</h3>
+                    <div class="file-upload-area" id="file-upload-area">
+                        <p>📁 Arrastra archivos aquí o haz clic para seleccionar</p>
+                        <p class="help-text">Formatos soportados: PDF, DOCX, PPTX, imágenes</p>
+                        <input type="file" id="file-input" style="display:none" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recurso-nombre">Nombre del Recurso:</label>
+                        <input type="text" id="recurso-nombre" placeholder="Ej: Guía de trabajo - Los animales">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recurso-descripcion">Descripción:</label>
+                        <textarea id="recurso-descripcion" placeholder="Breve descripción del recurso..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recurso-unidad">Unidad Asociada:</label>
+                        <select id="recurso-unidad">
+                            <option value="">Ninguna (recurso general)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-success" id="save-recurso-btn">Guardar Recurso</button>
+                </div>
+
+                <!-- Recursos Guardados -->
+                <div class="saved-resources">
+                    <h3>Recursos Guardados</h3>
+                    <div id="saved-recursos-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: Planificación -->
+        <section class="tab-content" id="tab-planificacion">
+            <div class="content-section">
+                <h2>Planificación Pedagógica</h2>
+
+                <div class="form-group">
+                    <label for="planificacion-unit">Unidad Pedagógica:</label>
+                    <select id="planificacion-unit">
+                        <option value="">Seleccione una unidad...</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="generar-planificacion-btn">Generar Planificación</button>
+
+                <div class="planificacion-container" id="planificacion-container" style="display:none;">
+                    <!-- Planificación Mensual -->
+                    <div class="planificacion-mensual">
+                        <h3>📅 Planificación Mensual</h3>
+                        <div class="planificacion-grid" id="planificacion-mensual-grid"></div>
+                    </div>
+
+                    <!-- Planificación Semanal -->
+                    <div class="planificacion-semanal">
+                        <h3>📆 Planificación Semanal</h3>
+                        <div class="planificacion-grid" id="planificacion-semanal-grid"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" id="save-planificacion-btn">Guardar Planificación</button>
+                        <button class="btn btn-info" id="export-planificacion-btn">Exportar a PDF</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -233,6 +333,7 @@
                 <div class="report-selector">
                     <button class="btn btn-primary report-type-btn active" data-report="curso">Reporte por Curso</button>
                     <button class="btn btn-primary report-type-btn" data-report="estudiante">Reporte por Estudiante</button>
+                    <button class="btn btn-primary report-type-btn" data-report="semestre">Reporte Semestral</button>
                     <button class="btn btn-primary report-type-btn" data-report="docente">Reporte Administrativo</button>
                 </div>
 
@@ -260,6 +361,20 @@
                     </div>
                     <div id="estudiante-stats" class="stats-container"></div>
                     <div id="estudiante-chart" class="chart-container"></div>
+                </div>
+
+                <!-- Reporte Semestral -->
+                <div class="report-content" id="report-semestre">
+                    <h3>Reporte Semestral de Objetivos</h3>
+                    <div class="form-group">
+                        <label for="report-semestre-select">Semestre:</label>
+                        <select id="report-semestre-select">
+                            <option value="1">Primer Semestre</option>
+                            <option value="2">Segundo Semestre</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="generar-reporte-semestre-btn">Generar Reporte</button>
+                    <div id="semestre-report-content"></div>
                 </div>
 
                 <!-- Reporte Administrativo -->
@@ -307,10 +422,33 @@
                     <label for="unit-description">Descripción:</label>
                     <textarea id="unit-description" placeholder="Descripción breve de la unidad..."></textarea>
                 </div>
+                <div class="date-input-group">
+                    <div>
+                        <label for="unit-fecha-inicio">Fecha de Inicio:</label>
+                        <input type="date" id="unit-fecha-inicio">
+                    </div>
+                    <div>
+                        <label for="unit-fecha-fin">Fecha de Fin:</label>
+                        <input type="date" id="unit-fecha-fin">
+                    </div>
+                </div>
                 <div class="action-buttons">
                     <button class="btn btn-success" id="save-unit-btn">Guardar Unidad</button>
                     <button class="btn btn-secondary close">Cancelar</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ver Efemérides -->
+    <div id="efemerides-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Efemérides de la Unidad</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="efemerides-content"></div>
             </div>
         </div>
     </div>

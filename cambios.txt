@@ -1,0 +1,8 @@
+cd "/Users/namonaque/Documents/VDI/Sistema EducParv"
+
+# Hacer tus cambios en los archivos...
+
+# Luego:
+git add .
+git commit -m "Descripción de tus cambios"
+git push

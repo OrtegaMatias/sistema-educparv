@@ -135,7 +135,59 @@ const AMBITOS = {
     }
 };
 
-// Objetivos de Aprendizaje Transversales (OAT)
+// Objetivos de Aprendizaje Transversales (OAT) separados por núcleo
+const OAT_POR_NUCLEO = {
+    identidad: [
+        { codigo: "OAT-ID-1", texto: "Manifestar disposición para regular sus emociones y sentimientos en función de las necesidades propias, de los demás y de algunos acuerdos para el funcionamiento grupal." },
+        { codigo: "OAT-ID-2", texto: "Manifestar disposición y confianza al separarse de los adultos significativos." },
+        { codigo: "OAT-ID-3", texto: "Reconocer, y progresivamente hacer respetar, el derecho a expresarse libremente, a ser escuchado y a que su opinión sea tomada en cuenta." },
+        { codigo: "OAT-ID-4", texto: "Manifestar iniciativa para proponer juegos y actividades, sugiriendo formas de organizarlos y de realizarlos de acuerdo a sus intereses." }
+    ],
+    convivencia: [
+        { codigo: "OAT-CV-1", texto: "Participar en actividades y juegos colaborativos con actitud propositiva, respetando normas y en función de un propósito común." },
+        { codigo: "OAT-CV-2", texto: "Manifestar empatía y solidaridad frente a situaciones que vivencian sus pares." },
+        { codigo: "OAT-CV-3", texto: "Aplicar estrategias pacíficas frente a la resolución de conflictos cotidianos." },
+        { codigo: "OAT-CV-4", texto: "Respetar normas y acuerdos creados colaborativamente con pares y adultos." },
+        { codigo: "OAT-CV-5", texto: "Manifestar disposición para practicar acuerdos de convivencia básica que regulan situaciones cotidianas y juegos." },
+        { codigo: "OAT-CV-6", texto: "Apreciar el significado que tienen para las personas y las comunidades, diversas manifestaciones culturales." }
+    ],
+    corporalidad: [
+        { codigo: "OAT-CO-1", texto: "Manifestar iniciativa para resguardar el autocuidado de su cuerpo y su confortabilidad." },
+        { codigo: "OAT-CO-2", texto: "Participar en actividades físicas y juegos respetando a los demás." },
+        { codigo: "OAT-CO-3", texto: "Manifestar disposición para practicar diferentes posturas corporales en actividades lúdicas." }
+    ],
+    lenguaje_verbal: [
+        { codigo: "OAT-LV-1", texto: "Manifestar interés por descubrir el contenido y algunos propósitos de diversos textos escritos." },
+        { codigo: "OAT-LV-2", texto: "Reconocer, y progresivamente hacer respetar, el derecho a expresarse libremente." },
+        { codigo: "OAT-LV-3", texto: "Participar en actividades de lectura compartida manifestando interés." },
+        { codigo: "OAT-LV-4", texto: "Manifestar interés por conocer, integrarse y participar progresivamente en prácticas culturales de su familia y comunidad." }
+    ],
+    lenguajes_artisticos: [
+        { codigo: "OAT-LA-1", texto: "Apreciar el significado que tienen para las personas diversas manifestaciones artísticas y culturales." },
+        { codigo: "OAT-LA-2", texto: "Manifestar disposición para expresar creativamente ideas y emociones a través de diferentes lenguajes artísticos." },
+        { codigo: "OAT-LA-3", texto: "Respetar y apreciar las expresiones artísticas de sus pares y de artistas." }
+    ],
+    exploracion: [
+        { codigo: "OAT-EN-1", texto: "Manifestar interés y asombro por descubrir y aprender sobre el entorno natural." },
+        { codigo: "OAT-EN-2", texto: "Manifestar disposición para practicar hábitos de cuidado del medioambiente." },
+        { codigo: "OAT-EN-3", texto: "Participar en actividades de exploración respetando el entorno natural." },
+        { codigo: "OAT-EN-4", texto: "Manifestar curiosidad por conocer algunos componentes del universo." }
+    ],
+    comprension_sociocultural: [
+        { codigo: "OAT-CS-1", texto: "Manifestar interés por conocer, integrarse y participar progresivamente en prácticas culturales de su familia y comunidad." },
+        { codigo: "OAT-CS-2", texto: "Apreciar el significado que tienen para las personas y las comunidades, diversas manifestaciones culturales." },
+        { codigo: "OAT-CS-3", texto: "Respetar y valorar la diversidad cultural en sus diferentes manifestaciones." },
+        { codigo: "OAT-CS-4", texto: "Reconocer la importancia de las instituciones y servicios de su comunidad." }
+    ],
+    pensamiento_matematico: [
+        { codigo: "OAT-PM-1", texto: "Manifestar interés por descubrir y resolver problemas matemáticos simples." },
+        { codigo: "OAT-PM-2", texto: "Participar en actividades matemáticas manifestando curiosidad." },
+        { codigo: "OAT-PM-3", texto: "Perseverar frente a desafíos matemáticos acordes a su edad." },
+        { codigo: "OAT-PM-4", texto: "Comunicar sus razonamientos matemáticos de forma simple." }
+    ]
+};
+
+// OAT generales (para retrocompatibilidad)
 const OAT = [
     { codigo: "OAT1", texto: "Participar en actividades y juegos colaborativos con actitud propositiva, respetando normas y en función de un propósito común." },
     { codigo: "OAT2", texto: "Manifestar empatía y solidaridad frente a situaciones que vivencian sus pares." },
@@ -304,4 +356,92 @@ function generarIndicadoresSugeridos(nucleo, oa) {
         "Participa activamente en las experiencias propuestas.",
         "Aplica lo aprendido en situaciones cotidianas."
     ];
+}
+
+// Efemérides - Fechas importantes del año escolar chileno
+const EFEMERIDES = {
+    marzo: [
+        { fecha: "08-03", titulo: "Día Internacional de la Mujer" },
+        { fecha: "21-03", titulo: "Día Internacional de la Eliminación de la Discriminación Racial" },
+        { fecha: "22-03", titulo: "Día Mundial del Agua" }
+    ],
+    abril: [
+        { fecha: "02-04", titulo: "Día Internacional del Libro Infantil" },
+        { fecha: "07-04", titulo: "Día Mundial de la Salud" },
+        { fecha: "22-04", titulo: "Día de la Tierra" },
+        { fecha: "23-04", titulo: "Día del Idioma Español y del Libro" }
+    ],
+    mayo: [
+        { fecha: "01-05", titulo: "Día del Trabajo" },
+        { fecha: "05-05", titulo: "Combate Naval de Iquique (Día de las Glorias Navales)" },
+        { fecha: "18-05", titulo: "Día Internacional de los Museos" },
+        { fecha: "21-05", titulo: "Día de las Glorias Navales" },
+        { fecha: "31-05", titulo: "Día Mundial sin Tabaco" }
+    ],
+    junio: [
+        { fecha: "01-06", titulo: "Día del Niño y la Niña" },
+        { fecha: "05-06", titulo: "Día Mundial del Medio Ambiente" },
+        { fecha: "07-06", titulo: "Día de la Bandera y de los Símbolos Patrios" },
+        { fecha: "20-06", titulo: "Día de los Pueblos Indígenas (We Tripantu)" },
+        { fecha: "21-06", titulo: "Inicio del Invierno" }
+    ],
+    julio: [
+        { fecha: "09-07", titulo: "Día de la Familia" },
+        { fecha: "16-07", titulo: "Día de la Virgen del Carmen" }
+    ],
+    agosto: [
+        { fecha: "06-08", titulo: "Natalicio de Bernardo O'Higgins" },
+        { fecha: "09-08", titulo: "Día Internacional de los Pueblos Indígenas" }
+    ],
+    septiembre: [
+        { fecha: "11-09", titulo: "Día de la Chilenidad" },
+        { fecha: "18-09", titulo: "Día de la Independencia de Chile" },
+        { fecha: "19-09", titulo: "Día de las Glorias del Ejército" },
+        { fecha: "21-09", titulo: "Día del Aprecio por la Diversidad Cultural" },
+        { fecha: "23-09", titulo: "Inicio de la Primavera" }
+    ],
+    octubre: [
+        { fecha: "05-10", titulo: "Día Mundial de los Docentes" },
+        { fecha: "12-10", titulo: "Encuentro de Dos Mundos" },
+        { fecha: "16-10", titulo: "Día Mundial de la Alimentación" },
+        { fecha: "31-10", titulo: "Día Nacional de las Iglesias Evangélicas y Protestantes" }
+    ],
+    noviembre: [
+        { fecha: "01-11", titulo: "Día de Todos los Santos" },
+        { fecha: "20-11", titulo: "Día Internacional de los Derechos del Niño" }
+    ],
+    diciembre: [
+        { fecha: "03-12", titulo: "Día Internacional de las Personas con Discapacidad" },
+        { fecha: "10-12", titulo: "Día de los Derechos Humanos" },
+        { fecha: "21-12", titulo: "Inicio del Verano" },
+        { fecha: "25-12", titulo: "Navidad" }
+    ]
+};
+
+// Función para obtener efemérides de un mes
+function obtenerEfemeridesDelMes(mes) {
+    return EFEMERIDES[mes] || [];
+}
+
+// Función para obtener efemérides de un rango de fechas
+function obtenerEfemeridesRango(fechaInicio, fechaFin) {
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const resultado = [];
+
+    Object.entries(EFEMERIDES).forEach(([mes, efemerides]) => {
+        efemerides.forEach(efemeride => {
+            const [dia, mesNum] = efemeride.fecha.split('-');
+            const fechaEfemeride = new Date(inicio.getFullYear(), parseInt(mesNum) - 1, parseInt(dia));
+
+            if (fechaEfemeride >= inicio && fechaEfemeride <= fin) {
+                resultado.push({
+                    ...efemeride,
+                    mes: mes
+                });
+            }
+        });
+    });
+
+    return resultado;
 }
